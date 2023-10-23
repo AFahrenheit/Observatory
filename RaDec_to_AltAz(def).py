@@ -1,7 +1,7 @@
 import math
 
 """"             1                    2                    3                    4
-Имя           Арктур                Мирах               Кебалраи              Капелла
+Имя           Arcturus              Mirach               Кebalrai              Сapella
 pUT           (16:12)OK           (20:15)-1m           (20:15)1m             (00:39)-2m
 pGST          (20:06)OK           (20.38)-2m           (15.44)-3m            (17.07)OK
 Ч.У.          (5:51)+2m           (19:28)+1m           (21:59)+1m            (11:47)+4m
@@ -11,7 +11,7 @@ pGST          (20:06)OK           (20.38)-2m           (15.44)-3m            (17
 
 def test(star):
     if star == 1:
-        name = 'Арктур'
+        name = 'Arcturus'
         Ra = 855
         Dec = 1143
         Hours = 19
@@ -20,7 +20,7 @@ def test(star):
         pMonth = 10
         pYear = 2023
     elif star == 2:
-        name = 'Мирах'
+        name = 'Mirach'
         Ra = 69
         Dec = 2135
         Hours = 23
@@ -29,7 +29,7 @@ def test(star):
         pMonth = 8
         pYear = 2023
     elif star == 3:
-        name = 'Кебалраи'
+        name = 'Кebalrai'
         Ra = 1064
         Dec = 273
         Hours = 23
@@ -38,7 +38,7 @@ def test(star):
         pMonth = 6
         pYear = 2022
     elif star == 4:
-        name = 'Капелла'
+        name = 'Kapella'
         Ra = 318
         Dec = 2761
         Hours = 3
