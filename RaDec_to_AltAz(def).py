@@ -64,30 +64,25 @@ def universal_time(JD, pYear, Hours, Minutes, pDs, pTz):
     ulR0 = ulT * (0.0513366 + ulT * (0.00002586222 - ulT * 0.000000001722))
     ulR1 = 6.697374558 + 2400.0 * (ulT - ((pYear - 2000.0) / 100.0))
     ulT0 = norm_0_to_24(ulR0 + ulR1)
-
     pLTime = Hours + (0.016 * Minutes)
     pUT = pLTime - pDs - pTz
     norm_0_to_24(pUT)
     return pUT, ulT, ulT0, ulR0, ulR1, pLTime
-def greenwich_sidereal_time(pUT, lT0):
+def greenwich_sidereal_time(pUT, ulT0):
     # ВЫЧИСЛЯЕМ ЗВЕЗДНОЕ ВРЕМЯ ПО ГРИНВИЧУ
     # pGST = (pUT * 1.002737908) + lT0           # оригинал
-    pGST = (pUT * 0.997269625) + lT0 - 0.11  # ошибка меньше 0.11 поправочный коэф
-    norm_0_to_24(pGST)
-    return pGST
+    pGST = (pUT * 0.997269625) + ulT0 - 0.11  # ошибка меньше 0.11 поправочный коэф
+    return norm_0_to_24(pGST)
 def local_sidereal_time(pGST, pLongitude):
     # ВЫЧИСЛЯЕМ МЕСТНОЕ ЗВЕЗДНОЕ ВРЕМЯ (LST)
     pLST = pGST + (pLongitude / 15.0)
-    norm_0_to_24(pLST)
-    return pLST
+    return norm_0_to_24(pLST)
 def hour_angel(pGST, pLongitude, Ra_h):
     # ВЫЧИСЛЯЕМ ЧАСОВОЙ УГОЛ
     #pHA_1 = pGST + (pLongitude / 15.0)  # pGST + (переводим градусы в часы)
     pHA_1 = pGST + (pLongitude / 15.0)  # pGST + (переводим градусы в часы)
-    norm_0_to_24(pHA_1)
-    pHA = pHA_1 - Ra_h
-    norm_0_to_24(pHA)
-    return pHA
+    pHA = norm_0_to_24(pHA_1) - Ra_h
+    return norm_0_to_24(pHA)
 def dec_ra_to_alt_az(pHA, Dec_rad, pLatitude):
     # ВЫЧИСЛЯЕМ АЗИМУТ И ВЫСОТУ
     AzEq = (pHA * 15.0) * 0.0175
@@ -110,7 +105,7 @@ def norm_0_to_24(x):
 
 
 # ТЕСТОВЫЕ ЗНАЧЕНИЯ
-star = 3
+star = 2
 
 # КОНСТАНТЫ
 pLongitude = 37.9111 * 0.0175
@@ -126,7 +121,7 @@ pLST = local_sidereal_time(pGST, pLongitude)
 pHA = hour_angel(pGST, pLongitude, Ra_h)
 AzEq, Az, Alt = dec_ra_to_alt_az(pHA, Dec_rad, pLatitude)
 
-colon = ':'
+""
 print('Название: ', name)
 print('Время:    ', str(Hours) + ':' + str(Minutes))
 print('Дата:     ', str(pDay)+'.'+str(pMonth)+'.'+str(pYear), '\n')
@@ -135,15 +130,17 @@ print('Широта:   ', round(pLatitude, 4), '\n')
 print('Прямое. восх:  ', round(Ra_h, 2))
 print('Склонение гр.: ', round(Dec_rad, 3))
 print('Юлиан. кал.:   ', JD, '\n')
-#print('ulT:   ', round(ulT, 2))
-#print('ulR0:  ', round(ulR0, 2))
-#print('ulR1:  ', round(ulR1, 2))
-#print('ulT0:  ', round(ulT0, 2))
+print('ulT:   ', round(ulT, 2))
+print('ulR0:  ', round(ulR0, 2))
+print('ulR1:  ', round(ulR1, 2))
+print('ulT0:  ', round(ulT0, 2),'\n')
 print('pUT:  ', int(pUT), ':', round((pUT - int(pUT)) * 60))
-print('pGST: ', int(pGST), ':', round((pGST - int(pGST)) * 60))
-print('pLST: ', int(pLST), ':', round((pLST - int(pLST)) * 60))
-print('LT:   ', int(pLTime), ':', round((pLTime - int(pLTime)) * 60))
-print('Ч.У.: ', int(pHA), ':', round((pHA - int(pHA)) * 60), '\n')
-#print('AzEq: ', round(AzEq, 2), 'радианы', '\n')
+print('pGST итог: ', int(pGST), ':', round((pGST - int(pGST)) * 60))
+print('pLST: ', round(pLST, 2),'  ', int(pLST), ':', round((pLST - int(pLST)) * 60))
+print('LocalTime:   ', pLTime, '  ', int(pLTime), ':', round((pLTime - int(pLTime)) * 60))
+#print('Ч.У.: ', pHA_1)
+print('Ч.У.: ', pHA, '  ',  int(pHA), ':', round((pHA - int(pHA)) * 60), '\n')
+print('AzEq: ', round(AzEq, 2), 'радианы', '\n')
 print('Азимут: ', round(Az, 1))
 print('Высота: ', round(Alt, 1))
+""

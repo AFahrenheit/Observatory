@@ -10,7 +10,7 @@ hourAngel     (5:51)+9m           (19:28)+8m         (21:59)+7m            (11:4
 
 
 # ТЕСТОВЫЕ ЗНАЧЕНИЯ
-star = 4
+star = 3
 if star == 1:
     name = 'Арктур'
     Ra = 855
@@ -114,11 +114,12 @@ print('pUT: ', round(pUT, 2), '   ', pUT_hour, ':', round(pUT_min))
 # ВЫЧИСЛЯЕМ ЗВЕЗДНОЕ ВРЕМЯ ПО ГРИНВИЧУ
 #pGST = (pUT * 1.002737908) + lT0           # оригинал
 pGST = (pUT * 0.997269625) + lT0 - 0.11           # ошибка меньше 0.11 поправочный коэф
+print('pGST:', pGST)
 while pGST > 24:
     pGST -= 24.0                                             # ХЭШ
 while pGST < 0:
     pGST += 24.0                                             # ХЭШ
-print('pGST:', round(pGST, 3), '   ', int(pGST), ':', round(((pGST - int(pGST))*0.6)*100))
+print('pGST (норм):', round(pGST, 3), '   ', int(pGST), ':', round(((pGST - int(pGST))*0.6)*100))
 
 
 # ВЫЧИСЛЯЕМ МЕСТНОЕ ЗВЕЗДНОЕ ВРЕМЯ (LST)
