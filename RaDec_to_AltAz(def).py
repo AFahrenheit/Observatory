@@ -47,17 +47,20 @@ def test(star):
         pMonth = 4
         pYear = 2022
     return name, Ra, Dec, Hours, Minutes, pDay, pMonth, pYear
+    
 def dec_ra_to_radians(Ra, Dec):
     # ВОСХОЖДЕНИЕ И СКЛОНЕНИЕ С ЭНКОДЕРОВ
     Ra_h = Ra * 0.016666667  # перевод в часы/градусы
     Dec_rad = abs(Dec / 60 * 0.0175)  # перевод в часы/градусы
     return Ra_h, Dec_rad
+    
 def julian_date(pYear, pMonth, pDay, Hours):
     # ВЫСЧИТЫВАЕМ ДАТУ ПО ЮЛИАНСКОМУ КАЛЕНДАРЮ
     A = math.floor(pYear / 100)
     B = 2 - A + math.floor(A / 4)
     JD = math.floor(365.25 * (pYear + 4716)) + math.floor(30.6001 * (pMonth + 1)) + pDay + (0.04 * Hours) + B - 1524.5
     return JD
+    
 def universal_time(JD, pYear, Hours, Minutes, pDs, pTz):
     # ВЫЧИСЛЯЕМ ВСЕМИРНОЕ ВРЕМЯ ПО ГРИНВИЧУ
     ulT = (JD / 36525.0) - 1
@@ -68,21 +71,25 @@ def universal_time(JD, pYear, Hours, Minutes, pDs, pTz):
     pUT = pLTime - pDs - pTz
     norm_0_to_24(pUT)
     return pUT, ulT, ulT0, ulR0, ulR1, pLTime
+    
 def greenwich_sidereal_time(pUT, ulT0):
     # ВЫЧИСЛЯЕМ ЗВЕЗДНОЕ ВРЕМЯ ПО ГРИНВИЧУ
     # pGST = (pUT * 1.002737908) + lT0           # оригинал
     pGST = (pUT * 0.997269625) + ulT0 - 0.11  # ошибка меньше 0.11 поправочный коэф
     return norm_0_to_24(pGST)
+    
 def local_sidereal_time(pGST, pLongitude):
     # ВЫЧИСЛЯЕМ МЕСТНОЕ ЗВЕЗДНОЕ ВРЕМЯ (LST)
     pLST = pGST + (pLongitude / 15.0)
     return norm_0_to_24(pLST)
+    
 def hour_angel(pGST, pLongitude, Ra_h):
     # ВЫЧИСЛЯЕМ ЧАСОВОЙ УГОЛ
     #pHA_1 = pGST + (pLongitude / 15.0)  # pGST + (переводим градусы в часы)
     pHA_1 = pGST + (pLongitude / 15.0)  # pGST + (переводим градусы в часы)
     pHA = norm_0_to_24(pHA_1) - Ra_h
     return norm_0_to_24(pHA)
+    
 def dec_ra_to_alt_az(pHA, Dec_rad, pLatitude):
     # ВЫЧИСЛЯЕМ АЗИМУТ И ВЫСОТУ
     AzEq = (pHA * 15.0) * 0.0175
@@ -96,6 +103,7 @@ def dec_ra_to_alt_az(pHA, Dec_rad, pLatitude):
     Az = pAzHor * 57.3
     Alt = pAltHor * 57.3
     return AzEq, Az, Alt
+    
 def norm_0_to_24(x):
     while x > 24:
         x -= 24.0
@@ -111,9 +119,12 @@ star = 2
 pLongitude = 37.9111 * 0.0175
 pLatitude = 54.703 * 0.0175
 
+# имя звезды, прямое восхождение, склонение, часы, минуты, число дня, месяц, год
 name, Ra, Dec, Hours, Minutes, pDay, pMonth, pYear = test(star)
+# прямое восхождение  в часах, склонение в радианах
 Ra_h, Dec_rad = dec_ra_to_radians(Ra, Dec)
 JD = julian_date(pYear, pMonth, pDay, Hours)
+# переход на летнее время (0-лето, 1-зима), часовой пояс
 pDs, pTz = 0, 3
 pUT, ulT, ulT0, ulR0, ulR1, pLTime = universal_time(JD, pYear, Hours, Minutes, pDs, pTz)
 pGST = greenwich_sidereal_time(pUT, ulT0)
