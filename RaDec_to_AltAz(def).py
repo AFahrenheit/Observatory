@@ -66,6 +66,7 @@ def test(test_star):
 def dec_ra_to_radians(Ra: int, Dec: int) -> float:
     '''
     ВОСХОЖДЕНИЕ И СКЛОНЕНИЕ С ЭНКОДЕРОВ
+    текущее положение телескопа узнаём исходя из полученных шагов энкодера при повороте телескопа
 
     :param Ra: прямое восхождение
     :param Dec: склонение
@@ -77,7 +78,7 @@ def dec_ra_to_radians(Ra: int, Dec: int) -> float:
     Dec_rad = abs(Dec / 60 * 0.0175)
     return Ra_h, Dec_rad
     
-def julian_date(pYear: int, pMonth: int, pDay: int, Hours: int):
+def julian_date(pYear: int, pMonth: int, pDay: int) -> float:   # , Hours: int
     '''
     ВЫСЧИТЫВАЕМ ДАТУ ПО ЮЛИАНСКОМУ КАЛЕНДАРЮ
 
@@ -90,7 +91,8 @@ def julian_date(pYear: int, pMonth: int, pDay: int, Hours: int):
     '''
     A = math.floor(pYear / 100)
     B = 2 - A + math.floor(A / 4)
-    JD = math.floor(365.25 * (pYear + 4716)) + math.floor(30.6001 * (pMonth + 1)) + pDay + (0.04 * Hours) + B - 1524.5
+    #JD = math.floor(365.25 * (pYear + 4716)) + math.floor(30.6001 * (pMonth + 1)) + pDay + (0.04 * Hours) + B - 1524.5
+    JD = math.floor(365.25 * (pYear + 4716) + 30.6001 * (pMonth + 1)) + pDay + B - 1524.5
     return JD
     
 def universal_time(JD: float, pYear: int, Hours: int,
@@ -205,7 +207,7 @@ pLatitude = 54.703 * 0.0175
 # ПЕРЕМЕННЫЕ
 name, Ra, Dec, Hours, Minutes, pDay, pMonth, pYear = test(test_star)
 Ra_h, Dec_rad = dec_ra_to_radians(Ra, Dec)
-JD = julian_date(pYear, pMonth, pDay, Hours)
+JD = julian_date(pYear, pMonth, pDay)   # , Hours
 pDs, pTz = 0, 3
 pUT, ulT0 = universal_time(JD, pYear, Hours, Minutes, pDs, pTz) # ulT, ulR0, ulR1, pLTime
 pGST = greenwich_sidereal_time(pUT, ulT0)
@@ -225,12 +227,13 @@ print('Юлиан. кал.:   ', JD, '\n')
 # print('ulT:   ', round(ulT, 2))
 # print('ulR0:  ', round(ulR0, 2))
 # print('ulR1:  ', round(ulR1, 2))
-print('ulT0:  ', round(ulT0, 2),'\n')
-print('pUT:  ', int(pUT), ':', round((pUT - int(pUT)) * 60))
-print('pGST итог: ', int(pGST), ':', round((pGST - int(pGST)) * 60))
-print('pLST: ', round(pLST, 2),'  ', int(pLST), ':', round((pLST - int(pLST)) * 60))
+
+#print('ulT0:  ', round(ulT0, 2),'\n')
+print('pUT:  ', round(pUT, 2), '   ', int(pUT), ':', round((pUT % 1) * 60))
+print('pGST: ', round(pGST, 2), '  ', int(pGST), ':', round((pGST % 1) * 60))
+print('pLST: ', round(pLST, 2),'  ', int(pLST), ':', round((pLST % 1) * 60))
 # print('LocalTime:   ', pLTime, '  ', int(pLTime), ':', round((pLTime - int(pLTime)) * 60))
-print('Ч.У.: ', pHA, '  ',  int(pHA), ':', round((pHA - int(pHA)) * 60), '\n')
+print('Ч.У.: ', round(pHA, 2), '  ',  int(pHA), ':', round((pHA % 1) * 60), '\n')
 # print('AzEq: ', round(AzEq, 2), 'радианы', '\n')
 print('Азимут: ', round(Az, 1))
 print('Высота: ', round(Alt, 1))
