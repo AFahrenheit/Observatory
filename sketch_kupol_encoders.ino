@@ -1,27 +1,14 @@
-//------------------------
-//=========ЧАСЫ===========
-//------------------------
-#include <microDS3231.h>
-MicroDS3231 rtc;
-
-//-----------------------
-//========ЭНКОДЕР========
-//-----------------------
 #include <EncButton.h>
 EncButton enc2(4, 5);
 EncButton enc1(2, 3);
 
-//=====ПРОБА
-int8_t Hours = 19;      //если 19
-int8_t Minutes = 12;    //если 12
-int8_t Seconds = 30;    //если 30
-int Dec = 0; // начальное 90 градусов
-int Ra = 0;  // начальное 1440 минут в 24 часах (2700 в 45 градусах)
+int Dec = 4800; //(4800тэ в 360°) начальное 90° (1200тэ = 90°, 13,3 ТЭ = 1°, 1тэ = 0,075°)
+int Ra = 0;  // pLST начальное 1440 минут в 24 часах (1200тэ = 90° = 6час, 3,33 ТЭ = 1 мин, 1тэ = 18сек)
+float h; float m;
 
 
 void setup() {
   Serial.begin(115200);
-  rtc.setTime(COMPILE_TIME); // установит дату и время, равное времени компиляции программы
 }
 
 void loop() {
@@ -30,33 +17,41 @@ void loop() {
 
   if (enc1.turn()) {
     if (enc1.right()) {
-      Dec += 1;
-      if (Dec > 5399) {
-        Dec -= 1;
+      Dec -= 1;
+      if (Dec < -4799) {
+        Dec = 4800;
       }
     }
     if (enc1.left()) {
-      Dec -= 1;
-      if (Dec < -5399) {
-        Dec += 1;
+      Dec += 1;
+      if (Dec > 4800) {
+        Dec = -4799;
       }
     }
-    Serial.print("Dec: "); Serial.println(Dec);
+    //Serial.print("Dec: "); Serial.println(abs(Dec));
+    //Serial.print("Dec мин: ");Serial.println((90.0 - ((4800.0 - abs(Dec)) / 13.3)) *  60);
+    //Serial.print("Dec гр: ");Serial.println(90.0 - ((4800.0 - abs(Dec)) / 13.3));
   }
 
   if (enc2.turn()) {
-    if (enc2.right()) {
+    if (enc2.left()) {
       Ra += 1;
-      if (Ra > 2699) {
+      if (Ra > 1399) {
         Ra = 0;
       }
     }
-    if (enc2.left()) {
+    if (enc2.right()) {
       Ra -= 1;
-      if (Ra < -2699) {
+      if (Ra < -1399) {
         Ra += 1;
       }
     }
-    Serial.print("Ra: "); Serial.println(Ra);
+    // Вывод
+    m = (1440 - (Ra / 3.33));  //  -(pLST)  (!!!!!!!!!)
+    h = m /60;
+    //Serial.print("Ra: "); Serial.println(Ra);
+    Serial.print("Ra мин: "); Serial.println(int(m)%1440);
+    Serial.print("Ra час: "); Serial.print(int(h) % 24); Serial.print(","); Serial.println(int(int(h*100) %100 * 0.6) );
+    Serial.println(" ");
   }
 }
