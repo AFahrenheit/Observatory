@@ -8,8 +8,8 @@ MicroDS3231 rtc;
 //========ЭНКОДЕР========
 //-----------------------
 #include <EncButton.h>
-EncButton enc1(2, 3);
-EncButton enc2(4, 5);
+EncButton enc1(6, 7);  //  d6d7
+EncButton enc2(14, 15); //  a0a1 (свободные a0 a1 a3 d6 d7 d8)
 
 //====================================================================
 //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>INPUT<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -58,6 +58,8 @@ void loop() {
     Print();
     delay(10000);                  // ПЕРИОД РАССЧЕТА НОВЫХ ДАННЫХ ОБСЕРВАТОРИИ 10 СЕКУНД
 }
+
+//  ЭНКОДЕРЫ ТУУУУУУУУУУУУУТ
 void yield() {
   enc1.tick();
   enc2.tick();
@@ -94,14 +96,13 @@ void yield() {
     Serial.print("Ra: "); Serial.println(Ra / 60);
   }
 }
-void ra_dec() {
 
+void ra_dec() {
                 // ВЫЧИСЛЯЕТ ЧАСЫ И РАДИАНЫ
   Ra_h = abs(Ra) * 0.016666667;
   Dec_rad = abs(Dec) * 0.000291666673;
 }
 void julian_date() {
-
                 // ВЫЧИСЛЯЕМ ДАТУ ПО ЮЛИАНСКОМУ КАЛЕНДАРЮ
   if (month <= 2) {
     year -= 1;
@@ -110,27 +111,25 @@ void julian_date() {
   B = 2 - A + floor(A / 4);
   JD = floor(365.25*(year+4716))+ floor(30.6001*(month+1))+date+(0.04*hour)+B-1524.5; // с часами ТОЧНЕЕ
 }
-void convert_LocalTime_to_LST() {
 
-            // ВЫЧИСЛЯЕМ ВСЕМИРНОЕ ВРЕМЯ ПО ГРИНВИЧУ
+void convert_LocalTime_to_LST() {
+                // ВЫЧИСЛЯЕМ ВСЕМИРНОЕ ВРЕМЯ ПО ГРИНВИЧУ
   lT = (JD / 36525.0) - 1;
   lR0 = lT * (0.0513366 + lT * (0.00002586222 - lT * 0.000000001722));
   lR1 = 6.697374558 + 2400.0 * (lT - ((year - 2000.0) / 100.0));          // ПРОБЛЕМА С ТОЧНОСТЬЮ!!!
   lT0 = {normalize0to24(lR0+lR1)};
-
-        // ВЫЧИСЛЯЕМ МЕСТНОЕ ЗВЕЗДНОЕ ВРЕМЯ
+                // ВЫЧИСЛЯЕМ МЕСТНОЕ ЗВЕЗДНОЕ ВРЕМЯ
   pLocalTime = hour + (0.016 * minute);     // время в десятичной форме
   pUT = {normalize0to24(pLocalTime - pDs - pTz)};
-
-        // ВЫЧИСЛЯЕМ ЗВЕЗДНОЕ ВРЕМЯ ПО ГРИНВИЧУ
+                // ВЫЧИСЛЯЕМ ЗВЕЗДНОЕ ВРЕМЯ ПО ГРИНВИЧУ
   pGST = {normalize0to24((pUT * 0.997269625) + lT0 - 0.11)};
 
-        // ВЫЧИСЛЯЕМ МЕСТНОЕ ЗВЕЗДНОЕ ВРЕМЯ (LST)
+                // ВЫЧИСЛЯЕМ МЕСТНОЕ ЗВЕЗДНОЕ ВРЕМЯ (LST)
   pLST = {normalize0to24(pGST + (Longit_rad / 15.0))};
 }
-void hour_angle() {
 
-         // ВЫЧИСЛЯЕМ ЧАСОВОЙ УГОЛ (hourAngel)
+void hour_angle() {
+                // ВЫЧИСЛЯЕМ ЧАСОВОЙ УГОЛ (hourAngel)
   HA_1 = {normalize0to24(pGST+(Longit_rad / 15.0))};
   HA = {normalize0to24(HA_1 - Ra_h)};
 }
@@ -140,7 +139,7 @@ void equatorial_to_horizontal() {
     pAltHor = 0;
   }
   else {
-           // ВЫЧИСЛЯЕМ АЗИМУТ И ВЫСОТУ
+                // ВЫЧИСЛЯЕМ АЗИМУТ И ВЫСОТУ
     AzEq = (HA * 15.0) * 0.0175;               // радианы
     pAltHor = asin((sin(Dec_rad) * sin(Lat_rad)) + (cos(Dec_rad) * cos(Lat_rad) * cos(AzEq)));
     pAzHor = acos((sin(Dec_rad) - (sin(Lat_rad) * sin(pAltHor))) / (cos(Lat_rad) * cos(pAltHor)));
