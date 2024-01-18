@@ -2,6 +2,8 @@ import math
 
 """"             1                    2                    3                    4
 Имя           Arcturus              Mirach              Кebalrai              Сapella
+RA              855                  69                   1064                 318
+Dec             1143                2135                  273                  2761
 pUT           (16:12)OK           (20:15)-1m           (20:15)1m             (00:39)-2m
 pGST          (20:06)OK           (20.38)-2m           (15.44)-3m            (17.07)OK
 Ч.У.          (5:51)+2m           (19:28)+1m           (21:59)+1m            (11:47)+4m
@@ -17,8 +19,8 @@ def test(test_star):
     :param test_star: значение в диапазоне от 1 до 4
     :return:
             name: название звезды
-            Ra: прямое восхождение в минутах
-            Dec: склонение в минутах
+            Ra: прямое восхождение в минутах (энкодер)
+            Dec: склонение в минутах (энкодер)
             Hours: текущий час
             Minutes: текущая минута
             pDay: день (число / дата)
@@ -198,7 +200,7 @@ def norm_0_to_24(x: float)  -> float:
 
 
 # ТЕСТОВЫЕ ЗНАЧЕНИЯ
-test_star = 4
+test_star = 2
 
 # КОНСТАНТЫ ДЛЯ МОЕГО РАСПОЛОЖЕНИЯ
 pLongitude = 37.9111 * 0.0175
@@ -227,7 +229,6 @@ print('Юлиан. кал.:   ', JD, '\n')
 # print('ulT:   ', round(ulT, 2))
 # print('ulR0:  ', round(ulR0, 2))
 # print('ulR1:  ', round(ulR1, 2))
-
 #print('ulT0:  ', round(ulT0, 2),'\n')
 print('pUT:  ', round(pUT, 2), '   ', int(pUT), ':', round((pUT % 1) * 60))
 print('pGST: ', round(pGST, 2), '  ', int(pGST), ':', round((pGST % 1) * 60))
