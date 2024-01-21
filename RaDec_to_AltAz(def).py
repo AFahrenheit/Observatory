@@ -128,7 +128,7 @@ def universal_time(JD: float, pYear: int, Hours: int,
     pLTime = Hours + (0.016 * Minutes)
     pUT = pLTime - pDs - pTz
     norm_0_to_24(pUT)
-    return pUT, ulT0 #, ulT, ulR0, ulR1, pLTime
+    return pUT, ulT0, ulT, ulR0, ulR1, pLTime #, ulT, ulR0, ulR1, pLTime
     
 def greenwich_sidereal_time(pUT: float, ulT0: float) -> float:
     '''
@@ -191,7 +191,7 @@ def dec_ra_to_alt_az(pHA: float, Dec_rad: float, pLatitude: float) -> float:
         pAzHor = 2 * math.pi - pAzHor
     Az = pAzHor * 57.3
     Alt = pAltHor * 57.3
-    return Az, Alt, #AzEq
+    return Az, Alt, AzEq #AzEq
     
 def norm_0_to_24(x: float)  -> float:
     '''
@@ -220,11 +220,11 @@ name, Ra, Dec, Hours, Minutes, pDay, pMonth, pYear = test(test_star)
 Ra_h, Dec_rad = dec_ra_to_radians(Ra, Dec)
 JD = julian_date(pYear, pMonth, pDay)   # , Hours
 pDs, pTz = 0, 3
-pUT, ulT0 = universal_time(JD, pYear, Hours, Minutes, pDs, pTz) # ulT, ulR0, ulR1, pLTime
+pUT, ulT0, ulT, ulR0, ulR1, pLTime = universal_time(JD, pYear, Hours, Minutes, pDs, pTz, ) # ulT, ulR0, ulR1, pLTime
 pGST = greenwich_sidereal_time(pUT, ulT0)
 pLST = local_sidereal_time(pGST, pLongitude)
 pHA = hour_angel(pGST, pLongitude, Ra_h)
-Az, Alt = dec_ra_to_alt_az(pHA, Dec_rad, pLatitude) # AzEq,
+Az, Alt, AzEq = dec_ra_to_alt_az(pHA, Dec_rad, pLatitude) # AzEq,
 
 # ВЫВОД ИНФОРМАЦИИ
 print('Название: ', name)
@@ -235,15 +235,21 @@ print('Широта:   ', round(pLatitude, 4), '\n')
 print('Прямое. восх:  ', round(Ra_h, 2))
 print('Склонение гр.: ', round(Dec_rad, 3))
 print('Юлиан. кал.:   ', JD, '\n')
-# print('ulT:   ', round(ulT, 2))
-# print('ulR0:  ', round(ulR0, 2))
-# print('ulR1:  ', round(ulR1, 2))
-#print('ulT0:  ', round(ulT0, 2),'\n')
+print('ulT:   ', round(ulT, 2))
+print('ulR0:  ', round(ulR0, 2))
+print('ulR1:  ', round(ulR1, 2))
+
+print('ulT0:  ', round(ulT0, 2),'\n')
+
 print('pUT:  ', round(pUT, 2), '   ', int(pUT), ':', round((pUT % 1) * 60))
 print('pGST: ', round(pGST, 2), '  ', int(pGST), ':', round((pGST % 1) * 60))
 print('pLST: ', round(pLST, 2),'  ', int(pLST), ':', round((pLST % 1) * 60))
-# print('LocalTime:   ', pLTime, '  ', int(pLTime), ':', round((pLTime - int(pLTime)) * 60))
+
+print('LocalTime:   ', pLTime, '  ', int(pLTime), ':', round((pLTime - int(pLTime)) * 60))
+
 print('Ч.У.: ', round(pHA, 2), '  ',  int(pHA), ':', round((pHA % 1) * 60), '\n')
-# print('AzEq: ', round(AzEq, 2), 'радианы', '\n')
+
+print('AzEq: ', round(AzEq, 2), 'радианы', '\n')
+
 print('Азимут: ', round(Az, 1))
 print('Высота: ', round(Alt, 1))
