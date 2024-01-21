@@ -4,6 +4,11 @@
 #include <microDS3231.h>
 MicroDS3231 rtc;
 
+int8_t  hour;      //часы
+int8_t  minute;   //минуты
+int8_t date;      //число
+int8_t month;      //месяц
+int year;       //год
 //___________________________________________________________________________________________________________________
 //                                   БИБЛИОТЕКИ ЭНКОДЕРЫ
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
@@ -11,14 +16,6 @@ MicroDS3231 rtc;
 EncButton enc2(14, 15); // (4, 5) a0a1 14, 15 (свободные a0 a1 a3 d6 d7 d8)
 EncButton enc1(6, 7); // (2, 3) d6d7 6, 7
 
-//====================================================================
-//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>INPUT TIME/DATE<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-//====================================================================
-int8_t  hour = rtc.getHours();      //часы
-int8_t  minute = rtc.getMinutes();   //минуты
-int8_t date = rtc.getDate();      //число
-int8_t month = rtc.getMonth();      //месяц
-int year = rtc.getYear();       //год
 
 //___________________________________________________________________________________________________________________
 //                                   ЭНКОДЕРЫ
@@ -26,9 +23,10 @@ int year = rtc.getYear();       //год
 int Dec = 4800; //(4800тэ в 360°) начальное 90°      (1200тэ = 90°, 13,3 ТЭ = 1°)
 int Ra = 0;  // начальное 1440 минут в 24 часах (1200тэ = 90° = 6час, 3,33333 ТЭ = 1 мин)
 
-int hRa_plus; int hRa_minus; // формулы рассчёта часа от склонения
+int mRa; // формулы рассчёта часа от склонения
+int x;          // множитель для часа по склонению
 int Ra_turn;        // Ra минуты
-int degDec;        // Dec градусы
+float degDec;        // Dec градусы
 int Ra_last; int Dec_last;  // последние показатели
 
 //___________________________________________________________________________________________________________________
@@ -41,8 +39,8 @@ float pUT;          // Всемир. вр. (16:12)       (20:15)         (20:15)
 float pGST;         // Зв.вр.Gr    (20:08)       (20.38)         (15.44)
 float JD;   //Юлиан. календарь     2460230.     2460176,34     2459736.50
 
-float Longit_rad = 0.66344425; //37.91111 * 0.0175;  // долгота 37'54'40 (радианы)
-float Lat_rad = 0.9573025;     //54.703 * 0.0175;   // широта 54'42'11  (радианы)
+float Longit_rad = 37.91111 * 0.0175;  // долгота 37'54'40 (радианы)
+float Lat_rad = 54.703 * 0.0175;   // широта 54'42'11  (радианы)
 
 float pLocalTime;
 int pDs = 0;         // Переход на летнее время (0 \ 1)
@@ -56,10 +54,10 @@ float Az; float Alt;                // азимут
 float A; float B;
 float lT; float lR0; float lR1; float lT0;
 
+void setup() {
 //___________________________________________________________________________________________________________________
 //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>VOID SETUP<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-void setup() {
   Serial.begin(115200);
 
 //___________________________________________________________________________________________________________________
@@ -68,13 +66,20 @@ void setup() {
   if (!rtc.begin()) {       // проверка наличия модуля на линии i2c
     Serial.println("DS3231 not found");
     for(;;);
-  rtc.setTime(COMPILE_TIME); // установит дату и время, равное времени компиляции программы
+  // визуально громоздкий, но более "лёгкий" с точки зрения памяти способ установить время компиляции
+  rtc.setTime(BUILD_SEC, BUILD_MIN, BUILD_HOUR, BUILD_DAY, BUILD_MONTH, BUILD_YEAR);
   }
+
+  hour = rtc.getHours();       //часы
+  minute = rtc.getMinutes();   //минуты
+  date = rtc.getDate();        //число
+  month = rtc.getMonth();      //месяц
+  year = rtc.getYear();        //год
 }
+void loop() {
 //___________________________________________________________________________________________________________________
 //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>VOID LOOP<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-void loop() {
     ra_dec();
     julian_date();
     convert_LocalTime_to_LST();
@@ -83,20 +88,19 @@ void loop() {
     Print();
     delay(10000);                  // ПЕРИОД РАССЧЕТА НОВЫХ ДАННЫХ ОБСЕРВАТОРИИ 10 СЕКУНД
 }
-
+void yield() {
 //___________________________________________________________________________________________________________________
 //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>VOID YIELD<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-void yield() {
-    encoders();
-      if (Ra != Ra_last or Dec != Dec_last) {
-        calculation_Ra_Dec();
-      }
+  encoders();
+    if (Ra != Ra_last or Dec != Dec_last) {
+      calculation_Ra_Dec();
+    }
 }
+void encoders() {
 //___________________________________________________________________________________________________________________
 //                                   ЭНКОДЕРЫ
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-void encoders() {
   enc1.tick();
   enc2.tick();
   if (enc1.turn()) {
@@ -128,66 +132,46 @@ void encoders() {
     }
   }
 }
-
+void calculation_Ra_Dec() {
 //___________________________________________________________________________________________________________________
 //                                   РАСЧЁТ ПОЛОЖЕНИЯ ТЕЛЕСКОПА
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-void calculation_Ra_Dec() {
-  int x = 1;          // множитель для часа по склонению
 
-  hRa_plus = int(x * 360 + (abs(Ra)/ 3.33333) + (pLST * 60)) % 1440;
-  hRa_minus = int(x * 360 - (abs(Ra)/ 3.33333) + (pLST * 60)) % 1440;
   degDec = 90.0 - ((4800.0 - abs(Dec)) / 13.3);
 
-    if (Ra > 0) {
+  if (Ra) {
       if (Dec < 0) {
-        Ra_turn = hRa_minus;
+        x = 1;
+        Ra_turn = int(x * 360 - (Ra / 3.33333) + (pLST * 60)) % 1440;
       }
       if (Dec > 0) {
         x = 3;
-        Ra_turn = hRa_minus;
+        Ra_turn = int(x * 360 - (Ra / 3.33333) + (pLST * 60)) % 1440;
       }
-    }
-    if (Ra < 0) {
-      if (Dec > 0) {
-        x = 3;
-        Ra_turn = hRa_plus;
-      }
-      if (Dec < 0) {
-        Ra_turn = hRa_plus;
-      }
-    }
-    if (Ra == 0) {
-      Ra_turn = 0;
-    }
+  }
 
-    Ra_last = Ra;
-    Dec_last = Dec;
+  Ra_last = Ra;
+  Dec_last = Dec;
 }
-
-
+void ra_dec() {
 //___________________________________________________________________________________________________________________
 //                                   ВЫЧИСЛЯЕТ ЧАСЫ RA И РАДИАНЫ DEC
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-void ra_dec() {
-  Ra_h = abs(Ra_turn) * 0.016666667;
-  Dec_rad = abs(degDec) * 0.000291666673;
+  Ra_h = Ra_turn * 0.016666667;
+  Dec_rad = degDec * 0.0175;
 }
-
+void julian_date() {
 //___________________________________________________________________________________________________________________
 //                                   ВЫЧИСЛЯЕМ ДАТУ ПО ЮЛИАНСКОМУ КАЛЕНДАРЮ
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-void julian_date() {
 
   if (month <= 2) {
     year -= 1;
     month += 12;}
-  A = floor(year / 100);
-  B = 2 - A + floor(A / 4);
-  JD = floor(365.25*(year+4716))+ floor(30.6001*(month+1))+date+(0.04*hour)+B-1524.5; // с часами ТОЧНЕЕ
+  A = floor(year / 100.00);
+  B = 2.0 - A + floor(A / 4.0);
+  JD = floor(365.25*(year+4716.0))+ floor(30.6001*(month+1.0))+date+(0.04*hour)+B-1524.5; // с часами ТОЧНЕЕ
 }
-
-
 void convert_LocalTime_to_LST() {
 //___________________________________________________________________________________________________________________
 //                                   ВЫЧИСЛЯЕМ ВСЕМИРНОЕ ВРЕМЯ ПО ГРИНВИЧУ
@@ -214,7 +198,6 @@ void convert_LocalTime_to_LST() {
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
   pLST = {normalize0to24(pGST + (Longit_rad / 15.0))};
 }
-
 void hour_angle() {
 //___________________________________________________________________________________________________________________
 //                                   ВЫЧИСЛЯЕМ ЧАСОВОЙ УГОЛ (hourAngel)
@@ -222,47 +205,52 @@ void hour_angle() {
   HA_1 = {normalize0to24(pGST+(Longit_rad / 15.0))};
   HA = {normalize0to24(HA_1 - Ra_h)};
 }
-
 void equatorial_to_horizontal() {
 //___________________________________________________________________________________________________________________
 //                                   ВЫЧИСЛЯЕМ АЗИМУТ И ВЫСОТУ
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-  if (Ra == 0 && Dec == 0){
-    pAzHor = 0;
-    pAltHor = 0;
-  }
-  else {
-    AzEq = (HA * 15.0) * 0.0175;               // радианы
-    pAltHor = asin((sin(Dec_rad) * sin(Lat_rad)) + (cos(Dec_rad) * cos(Lat_rad) * cos(AzEq)));
-    pAzHor = acos((sin(Dec_rad) - (sin(Lat_rad) * sin(pAltHor))) / (cos(Lat_rad) * cos(pAltHor)));
-    if (sin(AzEq) > 0) {
-      pAzHor = 2 * PI - pAzHor;}
-    Az = pAzHor * 57.3;
-    Alt = pAltHor * 57.3;
-  }
+  AzEq = (HA * 15.0) * 0.0175;               // радианы
+  pAltHor = asin((sin(Dec_rad) * sin(Lat_rad)) + (cos(Dec_rad) * cos(Lat_rad) * cos(AzEq)));
+  pAzHor = acos((sin(Dec_rad) - (sin(Lat_rad) * sin(pAltHor))) / (cos(Lat_rad) * cos(pAltHor)));
+  if (sin(AzEq) > 0) {
+    pAzHor = 2 * PI - pAzHor;}
+  Az = pAzHor * 57.3;
+  Alt = pAltHor * 57.3;
 }
-
+float normalize0to24(float x) {
 //___________________________________________________________________________________________________________________
 //                                   ПРИВЕДЕНИЕ В ПОРЯДОК
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-float normalize0to24(float x) {
   while (x > 24.0){
     x -= 24.0;}
   while (x < 0) {
     x += 24.0;}
   return x;
 }
-
+void Print() {
 //___________________________________________________________________________________________________________________
 //                                   ВЫВОД
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-void Print() {
-  Serial.print("Дата : "); Serial.print(date); Serial.print("."); Serial.print(month); Serial.print("."); Serial.println(year);
-  Serial.print("Время: "); Serial.print(hour); Serial.print(":"); Serial.println(minute);
-  Serial.print("Ra: "); Serial.println(Ra_h);
-  Serial.print("Dec: "); Serial.println(Dec_rad);
-//  Serial.print("Долгота: "); Serial.println(Longit_rad);
-//  Serial.print("Широта: "); Serial.println(Lat_rad);
+
+//  Serial.print("Dec_rad: "); Serial.println(Dec_rad);
+//  Serial.print("sin(Dec_rad): "); Serial.println(sin(Dec_rad));
+//  Serial.print("cos(Dec_rad): "); Serial.println(cos(Dec_rad));
+//  Serial.print("Lat_rad: "); Serial.println(Lat_rad);
+//  Serial.print("sin(Lat_rad): "); Serial.println(sin(Lat_rad));
+//  Serial.print("cos(Lat_rad): "); Serial.println(cos(Lat_rad));
+//  Serial.print("AzEq: "); Serial.println(AzEq);
+//  Serial.print("cos(AzEq): "); Serial.println(cos(AzEq));
+//  Serial.print("(sin(Dec_rad) * sin(Lat_rad)): "); Serial.println((sin(Dec_rad) * sin(Lat_rad)));
+//  Serial.print("(cos(Dec_rad) * cos(Lat_rad) * cos(AzEq)): "); Serial.println((cos(Dec_rad) * cos(Lat_rad) * cos(AzEq)));
+//  Serial.print("pAltHor"); Serial.println(pAltHor);
+//
+//  Serial.print("sin(pAltHor): "); Serial.println(sin(pAltHor));
+//  Serial.print("cos(pAltHor): "); Serial.println(cos(pAltHor));
+//  Serial.print("(sin(Dec_rad) - (sin(Lat_rad) * sin(pAltHor)): "); Serial.println((sin(Dec_rad) - (sin(Lat_rad) * sin(pAltHor))));
+//  Serial.print("(cos(Lat_rad) * cos(pAltHor)): "); Serial.println((cos(Lat_rad) * cos(pAltHor)));
+//  Serial.print("(sin(Dec_rad) - (sin(Lat_rad) * sin(pAltHor))) / (cos(Lat_rad) * cos(pAltHor)): "); Serial.println((sin(Dec_rad) - (sin(Lat_rad) * sin(pAltHor))) / (cos(Lat_rad) * cos(pAltHor)));
+//  Serial.print("pAzHor"); Serial.println(pAzHor);
+
 //  Serial.print("Юлиан. кал.: "); Serial.println(JD);
 //  Serial.print("lT: "); Serial.println(lT);
 //  Serial.print("lR0: "); Serial.println(lR0);
@@ -271,19 +259,26 @@ void Print() {
 //  Serial.print("pUT: "); Serial.print(pUT);Serial.print("     "); Serial.print(int(pUT));Serial.print(":"); Serial.println(round((pUT - int(pUT))*60));
 //  Serial.print("pGST: "); Serial.print(pGST); Serial.print("     "); Serial.print(int(pGST));Serial.print(":"); Serial.println(round((pGST - int(pGST))*60));
 //  Serial.print("pLST (дес): "); Serial.print(pLST); Serial.print("     "); Serial.print(int(pLST)); Serial.print(":"); Serial.println(round((pLST - int(pLST))*60));
+//  Serial.println("  ");
 //  Serial.print("LocalTime (дес): "); Serial.print(pLocalTime); Serial.print("     "); Serial.print(int(pLocalTime)); Serial.print(":"); Serial.println(round((pLocalTime - int(pLocalTime))*60));
 //  Serial.print("Часовой угол: "); Serial.print(HA);  Serial.print("     "); Serial.print(int(HA));Serial.print(":"); Serial.println((HA - int(HA))*60);
 //  Serial.print("AzEq: "); Serial.print(AzEq); Serial.println("радианы");
-  Serial.print("Азимут: "); Serial.print(Az); Serial.println("градусы");
-  Serial.print("Высота: "); Serial.print(Alt); Serial.println("градусы");
-  Serial.println("  ");
-
+//  Serial.println("  ");
+//  Serial.print("Dec_rad: "); Serial.println(Dec_rad);
 //  Serial.print("Dec: "); Serial.println(Dec);
 //  Serial.print("Dec мин: ");Serial.println((90.0 - ((4800.0 - abs(Dec)) / 13.3)) *  60);
-  Serial.print("Dec гр: ");Serial.println(degDec);
+//  Serial.print("Dec гр: ");Serial.println(degDec);
 //  Serial.println(" ");
 //  Serial.print("Ra_turn: "); Serial.println(Ra_turn);
 //  Serial.print("Ra: "); Serial.println(Ra);
-  Serial.print("Ra(t) час: "); Serial.print(Ra_turn/60);  Serial.print(":"); Serial.print(int(Ra_turn)%60); Serial.println("   +LST %24");
-  Serial.println(" ");
+
+  Serial.println("Навигация");
+  Serial.print("Дата : "); Serial.print(date); Serial.print("."); Serial.print(month%12); Serial.print("."); Serial.println(year);
+  Serial.print("Время: "); Serial.print(hour); Serial.print(":"); Serial.println(minute);
+  Serial.print("Dec гр: "); Serial.println(degDec);
+  Serial.print("Ra_h: "); Serial.println(Ra_h);
+  Serial.print("Азимут: "); Serial.print(Az); Serial.println("градусы");
+  Serial.print("Высота: "); Serial.print(Alt); Serial.println("градусы");
+//  Serial.print("Ra(t) час: "); Serial.print(Ra_turn/60);  Serial.print(":"); Serial.println(int(Ra_turn)%60);
+//  Serial.println(" ");
 }

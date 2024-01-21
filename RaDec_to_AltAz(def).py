@@ -65,11 +65,11 @@ def test(test_star):
         pYear = 2022
     elif test_star == 5:
         name = 'Polar'
-        Ra = 182
-        Dec = 5361
-        Hours = 20
-        Minutes = 42
-        pDay = 21
+        Ra = 600
+        Dec = 4136
+        Hours = 13
+        Minutes = 32
+        pDay = 22
         pMonth = 1
         pYear = 2024
     return name, Ra, Dec, Hours, Minutes, pDay, pMonth, pYear
@@ -191,8 +191,33 @@ def dec_ra_to_alt_az(pHA: float, Dec_rad: float, pLatitude: float) -> float:
         pAzHor = 2 * math.pi - pAzHor
     Az = pAzHor * 57.3
     Alt = pAltHor * 57.3
+
+    print("Dec_rad: ", Dec_rad)
+    print("sin(Dec_rad): ", math.sin(Dec_rad))
+    print("cos(Dec_rad): ", math.cos(Dec_rad))
+    print("Lat_rad: ", pLatitude)
+    print("sin(Lat_rad): ", math.sin(pLatitude))
+    print("cos(Lat_rad): ", math.cos(pLatitude))
+    print("AzEq: ", AzEq)
+    print("cos(AzEq): ", math.cos(AzEq))
+    print("(sin(Dec_rad) * sin(Lat_rad)): ", math.sin(Dec_rad) * math.sin(pLatitude))
+    print("(cos(Dec_rad) * cos(Lat_rad) * cos(AzEq)): ", math.cos(Dec_rad) * math.cos(pLatitude) * math.cos(AzEq))
+    print('pAltHor', pAltHor)
+
+    print("pAltHor: ", pAltHor)
+    print("sin(pAltHor): ", math.sin(pAltHor))
+    print("cos(pAltHor): ", math.cos(pAltHor))
+    print("(sin(Dec_rad) - (sin(Lat_rad) * sin(pAltHor)): ",
+          math.sin(Dec_rad) - (math.sin(pLatitude) * math.sin(pAltHor)))
+    print("(cos(Lat_rad) * cos(pAltHor)): ", (math.cos(pLatitude) * math.cos(pAltHor)))
+    print("(sin(Dec_rad) - (sin(Lat_rad) * sin(pAltHor))) / (cos(Lat_rad) * cos(pAltHor)): ",
+          (math.sin(Dec_rad) - (math.sin(pLatitude) * math.sin(pAltHor))) / (math.cos(pLatitude) * math.cos(pAltHor)))
+    print('pAzHor', pAzHor)
+    print('Азимут: ', round(Az, 1))
+    print('Высота: ', round(Alt, 1))
+
     return Az, Alt, AzEq #AzEq
-    
+
 def norm_0_to_24(x: float)  -> float:
     '''
     ПРИВЕДЕНИЕ К ДИАПАЗОНУ ОТ 0 ДО 24
@@ -227,29 +252,31 @@ pHA = hour_angel(pGST, pLongitude, Ra_h)
 Az, Alt, AzEq = dec_ra_to_alt_az(pHA, Dec_rad, pLatitude) # AzEq,
 
 # ВЫВОД ИНФОРМАЦИИ
-print('Название: ', name)
-print('Время:    ', str(Hours) + ':' + str(Minutes))
-print('Дата:     ', str(pDay)+'.'+str(pMonth)+'.'+str(pYear), '\n')
-print('Долгота:  ', round(pLongitude, 4))
-print('Широта:   ', round(pLatitude, 4), '\n')
-print('Прямое. восх:  ', round(Ra_h, 2))
-print('Склонение гр.: ', round(Dec_rad, 3), 90 - round(Dec_rad, 3)) # Используются часы от центра
-print('Юлиан. кал.:   ', JD, '\n')
-print('ulT:   ', round(ulT, 2))
-print('ulR0:  ', round(ulR0, 2))
-print('ulR1:  ', round(ulR1, 2))
 
-print('ulT0:  ', round(ulT0, 2),'\n')
 
-print('pUT:  ', round(pUT, 2), '   ', int(pUT), ':', round((pUT % 1) * 60))
+# print('Название: ', name)
+# print('Время:    ', str(Hours) + ':' + str(Minutes))
+# print('Дата:     ', str(pDay)+'.'+str(pMonth)+'.'+str(pYear), '\n')
+# print('Долгота:  ', round(pLongitude, 4))
+# print('Широта:   ', round(pLatitude, 4), '\n')
+# print('Прямое. восх:  ', round(Ra_h, 2))
+# print('Склонение гр.: ', round(Dec_rad, 3), 90 - round(Dec_rad, 3)) # Используются часы от центра
+# print('Юлиан. кал.:   ', JD, '\n')
+# print('ulT:   ', round(ulT, 2))
+# print('ulR0:  ', round(ulR0, 2))
+# print('ulR1:  ', round(ulR1, 2))
+#
+# print('ulT0:  ', round(ulT0, 2),'\n')
+#
+# print('pUT:  ', round(pUT, 2), '   ', int(pUT), ':', round((pUT % 1) * 60))
 print('pGST: ', round(pGST, 2), '  ', int(pGST), ':', round((pGST % 1) * 60))
-print('pLST: ', round(pLST, 2),'  ', int(pLST), ':', round((pLST % 1) * 60))
-
-print('LocalTime:   ', pLTime, '  ', int(pLTime), ':', round((pLTime - int(pLTime)) * 60))
-
+# print('pLST: ', round(pLST, 2),'  ', int(pLST), ':', round((pLST % 1) * 60))
+#
+# print('LocalTime:   ', pLTime, '  ', int(pLTime), ':', round((pLTime - int(pLTime)) * 60))
+#
 print('Ч.У.: ', round(pHA, 2), '  ',  int(pHA), ':', round((pHA % 1) * 60), '\n')
-
-print('AzEq: ', round(AzEq, 2), 'радианы', '\n')
-
-print('Азимут: ', round(Az, 1))
-print('Высота: ', round(Alt, 1))
+#
+# print('AzEq: ', round(AzEq, 2), 'радианы', '\n')
+#
+# print('Азимут: ', round(Az, 1))
+# print('Высота: ', round(Alt, 1))
