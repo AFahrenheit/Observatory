@@ -67,8 +67,8 @@ def test(test_star):
         name = 'Polar'
         Ra = 182
         Dec = 5361
-        Hours = 20
-        Minutes = 42
+        Hours = 21
+        Minutes = 22
         pDay = 21
         pMonth = 1
         pYear = 2024
