@@ -63,6 +63,15 @@ def test(test_star):
         pDay = 21
         pMonth = 4
         pYear = 2022
+    elif test_star == 5:
+        name = 'Polar'
+        Ra = 71
+        Dec = 5361
+        Hours = 20
+        Minutes = 42
+        pDay = 21
+        pMonth = 1
+        pYear = 2024
     return name, Ra, Dec, Hours, Minutes, pDay, pMonth, pYear
     
 def dec_ra_to_radians(Ra: int, Dec: int) -> float:
@@ -200,7 +209,7 @@ def norm_0_to_24(x: float)  -> float:
 
 
 # ТЕСТОВЫЕ ЗНАЧЕНИЯ
-test_star = 2
+test_star = 5
 
 # КОНСТАНТЫ ДЛЯ МОЕГО РАСПОЛОЖЕНИЯ
 pLongitude = 37.9111 * 0.0175
