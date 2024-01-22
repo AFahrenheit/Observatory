@@ -54,7 +54,10 @@ float lT; float lR0; float lR1; float lT0;
 //                                   ПОВОРОТ КУПОЛА
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 int last_position;   // последняя позиция
-int turn = 0;                                // шаги в градусах до намеченной цели (шагов мотора на 1 градус)
+int turn_deg = 0;                                // шаги в градусах до намеченной цели (шагов мотора на 1 градус)
+int turn_R; int turn_L;
+int pos;
+
 
 void setup() {
 //___________________________________________________________________________________________________________________
@@ -87,7 +90,9 @@ void loop() {
     convert_LocalTime_to_LST();
     hour_angle();
     equatorial_to_horizontal();
-    turn();
+    if (last_position != Az) {
+      Turn();
+    }
     Print();
     delay(10000);                  // ПЕРИОД РАССЧЕТА НОВЫХ ДАННЫХ ОБСЕРВАТОРИИ 10 СЕКУНД
 }
@@ -211,6 +216,7 @@ void equatorial_to_horizontal() {
 //                                   ВЫЧИСЛЯЕМ АЗИМУТ И ВЫСОТУ
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
   AzEq = (HA * 15.0) * 0.0175;               // радианы
+
   pAltHor = asin((sin(Dec_rad) * sin(Lat_rad)) + (cos(Dec_rad) * cos(Lat_rad) * cos(AzEq)));
   pAzHor = acos((sin(Dec_rad) - (sin(Lat_rad) * sin(pAltHor))) / (cos(Lat_rad) * cos(pAltHor)));
   if (sin(AzEq) > 0) {
@@ -228,7 +234,7 @@ float normalize0to24(float x) {
     x += 24.0;}
   return x;
 }
-void turn() {
+void Turn() {
 //___________________________________________________________________________________________________________________
 //                                   ПОВОРОТ КУПОЛА
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
@@ -236,32 +242,43 @@ void turn() {
   turn_R = last_position - Az;   // вычисление шагов вПраво
 
   if (turn_R < 0) {                          // если вПраво через точку 0
-    turn_R += 361;
+    turn_R += 360; // 361
   }
 
   pos = min(turn_L, turn_R);               // выбор наименьшего пути право/лево
 
   if (pos == turn_R && pos <= 180) {        // движение вправо
-    Serial.println('Еду ПРАВО');
-    while (pos != turn) {
-      # КОД ДЛЯ МОТОРА
-      turn = pos - 1;                  // отсчёт шагов для цели
-      pos = turn;
-      if (Az == turn) {        // если достиг цели
-        break
+    // Serial.println('Еду ПРАВО');
+    while (pos != turn_deg) {
+
+      // КОД ДЛЯ МОТОРА
+
+      turn_deg = pos - 1;                  // отсчёт шагов для цели
+      pos = turn_deg;
+      //last_position = Az;
+      if (Az == turn_deg) {        // если достиг цели
+        turn_deg = 0;
+        break;
       }
     }
   }
   else {
-    Serial.println('Еду лево');                   // движение влево
-    while (Az - last_position != turn) {
-      # КОД ДЛЯ МОТОРА
-      turn += 1;                       // отсчёт шагов до цели
-      if (pos == turn) {                 // если достиг цели
-        break
+    // Serial.println('Еду лево');                   // движение влево
+    while (Az - last_position != turn_deg) {
+
+      // КОД ДЛЯ МОТОРА
+
+      turn_deg += 1;                       // отсчёт шагов до цели
+      //last_position = Az;
+      if (pos == turn_deg) {                 // если достиг цели
+        turn_deg = 0;
+        break;
       }
     }
   }
+  // if motor.stopped {
+  //   last_position = Az;
+  // }
 }
 
 void Print() {
@@ -309,17 +326,16 @@ void Print() {
 //  Serial.print("Ra_turn: "); Serial.println(Ra_turn);
 //  Serial.print("Ra: "); Serial.println(Ra);
 
-  Serial.println("Навигация");
-  Serial.print("Дата : "); Serial.print(date); Serial.print("."); Serial.print(month%12); Serial.print("."); Serial.println(year);
-  Serial.print("Время: "); Serial.print(hour); Serial.print(":"); Serial.println(minute);
-  Serial.print("Dec гр: "); Serial.println(degDec);
-  Serial.print("Ra_h: "); Serial.println(Ra_h);
+//  Serial.println("Навигация");
+//  Serial.print("Дата : "); Serial.print(date); Serial.print("."); Serial.print(month%12); Serial.print("."); Serial.println(year);
+//  Serial.print("Время: "); Serial.print(hour); Serial.print(":"); Serial.println(minute);
+//  Serial.print("Dec гр: "); Serial.println(degDec);
+//  Serial.print("Ra_h: "); Serial.println(Ra_h);
   Serial.print("Азимут: "); Serial.print(Az); Serial.println("градусы");
-  Serial.print("Высота: "); Serial.print(Alt); Serial.println("градусы");
+//  Serial.print("Высота: "); Serial.print(Alt); Serial.println("градусы");
 //  Serial.print("Ra(t) час: "); Serial.print(Ra_turn/60);  Serial.print(":"); Serial.println(int(Ra_turn)%60);
-//  Serial.println(" ");
-  Serial.print("Начальная позиция:"); Serial.println(last_position);
   Serial.print("Новая позиция:"); Serial.println(Az);
-  Serial.print("Повернул на"); Serial.print(turn); Serial.println("углов");
-  Serial.print("Последняя позиция: ");Serial.println(last_position);
+  Serial.print("Последняя позиция:"); Serial.println(last_position);
+  Serial.print("Повернул на "); Serial.print(turn_deg); Serial.println(" углов");
+  Serial.println(" ");
 }
