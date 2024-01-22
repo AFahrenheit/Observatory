@@ -139,15 +139,13 @@ void calculation_Ra_Dec() {
 
   degDec = 90.0 - ((4800.0 - abs(Dec)) / 13.3);
 
-  if (Ra) {
-      if (Dec < 0) {
-        x = 1;
-        Ra_turn = int(x * 360 - (Ra / 3.33333) + (pLST * 60)) % 1440;
-      }
-      if (Dec > 0) {
-        x = 3;
-        Ra_turn = int(x * 360 - (Ra / 3.33333) + (pLST * 60)) % 1440;
-      }
+  if (Dec < 0) {
+    x = 1;
+    Ra_turn = int(x * 360 - (Ra / 3.33333) + (pLST * 60)) % 1440;
+  }
+  else if (Dec > 0) {
+    x = 3;
+    Ra_turn = int(x * 360 - (Ra / 3.33333) + (pLST * 60)) % 1440;
   }
 
   Ra_last = Ra;
@@ -202,7 +200,7 @@ void hour_angle() {
 //___________________________________________________________________________________________________________________
 //                                   ВЫЧИСЛЯЕМ ЧАСОВОЙ УГОЛ (hourAngel)
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-  HA_1 = {normalize0to24(pGST+(Longit_rad / 15.0))};
+  HA_1 = {normalize0to24(pGST + (Longit_rad / 15.0))};
   HA = {normalize0to24(HA_1 - Ra_h)};
 }
 void equatorial_to_horizontal() {
