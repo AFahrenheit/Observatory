@@ -337,5 +337,6 @@ void Print() {
   Serial.print("Новая позиция:"); Serial.println(Az);
   Serial.print("Последняя позиция:"); Serial.println(last_position);
   Serial.print("Повернул на "); Serial.print(turn_deg); Serial.println(" углов");
+  Serial.print("Pos:"); Serial.println(pos);
   Serial.println(" ");
 }
