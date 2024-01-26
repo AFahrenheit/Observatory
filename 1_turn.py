@@ -46,4 +46,4 @@ else:
             break
 
 print('Повернул на', turn, 'углов')
-print('Последняя позиция: ', last_position, '\n')
+print('Текущая позиция: ', last_position, '\n')
