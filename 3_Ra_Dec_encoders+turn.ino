@@ -62,10 +62,10 @@ float lT; float lR0; float lR1; float lT0;
 //___________________________________________________________________________________________________________________
 //                                   ПОВОРОТ КУПОЛА
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-int last_position;   // последняя позиция
-int32_t turn_deg = 0;                                // шаги в градусах до намеченной цели (шагов мотора на 1 градус)
-int turn_R; int turn_L;
-int pos;
+            int last_position;   // последняя позиция
+            int32_t turn_deg = 0;                                // шаги в градусах до намеченной цели (шагов мотора на 1 градус)
+            int turn_R; int turn_L;
+            int pos;
 
 
 void setup() {
@@ -114,6 +114,7 @@ void encoders() {
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
   enc1.tick();
   enc2.tick();
+
   if (enc1.turn()) {
     if (enc1.right()) {
       Dec -= 1;
@@ -176,7 +177,6 @@ void julian_date() {
 
   hour = rtc.getHours();       //часы
   minute = rtc.getMinutes();   //минуты
-  second = rtc.getSeconds();
   date = rtc.getDate();        //число
   month = rtc.getMonth();      //месяц
   year = rtc.getYear();        //год
@@ -305,12 +305,12 @@ void Print() {
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 //  Serial.println("Навигация");
 //  Serial.print("Дата : "); Serial.print(date); Serial.print("."); Serial.print(month%12); Serial.print("."); Serial.println(year);
-  Serial.print("Время: "); Serial.print(hour); Serial.print(":"); Serial.print(minute); Serial.print(":"); Serial.println(second);
+  Serial.print("Время: "); Serial.print(hour); Serial.print(":"); Serial.println(minute);
   Serial.print("Юлианский: "); Serial.println(JD);
 //  Serial.print("Азимут: "); Serial.print(Az); Serial.println("градусы");
 //  Serial.print("Новая позиция:"); Serial.println(Az);
 //  Serial.print("Последняя позиция:"); Serial.println(last_position);
-  Serial.print("Повернул на "); Serial.print(turn_deg); Serial.println(" углов");
+  Serial.print("Повернул на "); Serial.print(turn_deg); Serial.println(" углов"); // ОТПРАВЛЯЕМ TURN_DEG
 //  Serial.print("Pos: "); Serial.print(pos);
   Serial.println(" ");
 }

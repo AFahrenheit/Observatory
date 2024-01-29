@@ -69,12 +69,6 @@ void setup() {
   // визуально громоздкий, но более "лёгкий" с точки зрения памяти способ установить время компиляции
   rtc.setTime(BUILD_SEC, BUILD_MIN, BUILD_HOUR, BUILD_DAY, BUILD_MONTH, BUILD_YEAR);
   }
-
-  hour = rtc.getHours();       //часы
-  minute = rtc.getMinutes();   //минуты
-  date = rtc.getDate();        //число
-  month = rtc.getMonth();      //месяц
-  year = rtc.getYear();        //год
 }
 void loop() {
 //___________________________________________________________________________________________________________________
@@ -93,16 +87,16 @@ void yield() {
 //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>VOID YIELD<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
   encoders();
-    if (Ra != Ra_last or Dec != Dec_last) {
-      calculation_Ra_Dec();
-    }
+  calculation_Ra_Dec();
 }
+
 void encoders() {
 //___________________________________________________________________________________________________________________
 //                                   ЭНКОДЕРЫ
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
   enc1.tick();
   enc2.tick();
+
   if (enc1.turn()) {
     if (enc1.right()) {
       Dec -= 1;
@@ -162,6 +156,12 @@ void julian_date() {
 //___________________________________________________________________________________________________________________
 //                                   ВЫЧИСЛЯЕМ ДАТУ ПО ЮЛИАНСКОМУ КАЛЕНДАРЮ
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+
+  hour = rtc.getHours();       //часы
+  minute = rtc.getMinutes();   //минуты
+  date = rtc.getDate();        //число
+  month = rtc.getMonth();      //месяц
+  year = rtc.getYear();        //год
 
   if (month <= 2) {
     year -= 1;
@@ -225,6 +225,62 @@ float normalize0to24(float x) {
     x += 24.0;}
   return x;
 }
+
+void Turn() {
+//___________________________________________________________________________________________________________________
+//                                   ПОВОРОТ КУПОЛА
+//‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+  stepper.tick();
+
+  turn_L = last_position + Az;   // вычисление шагов вЛево
+  turn_R = Az - last_position;   // вычисление шагов вПраво
+
+  if (turn_R < 0) {                          // если вПраво через точку 0
+    turn_R += 361;
+  }
+  if (turn_L >= 359) {                         // если вЛЕво через точку 0
+    turn_L = 360 - Az + last_position;
+  }
+
+  pos = min(turn_L, turn_R);               // выбор наименьшего пути право/лево
+
+  if (pos == turn_L && pos <= 180) {        // движение вправо
+    //Serial.println("Еду леВО");
+
+    while (pos != turn_deg) {
+      turn_deg = 0 - pos;                  // отсчёт шагов для цели
+      pos = turn_deg;
+
+      if (Az == abs(turn_deg)) { // (abs(turn_deg) + last_position)%359        // abs если достиг цели
+        Serial.println("приехал влеВО");
+        //last_position = Az;
+        // ОТПРАВЛЯЕМ ДАННЫЕ
+        //turn_deg = 0;
+        //stepper.reset();        // обнуление положения 0
+        break;
+      }
+    }
+  }
+
+  else {
+    //Serial.println("Еду ПРАво");                   // движение влево
+
+    while (Az - last_position != turn_deg) {
+      turn_deg += 1;                       // отсчёт шагов до цели
+
+      if (Az == turn_deg) { // (turn_deg + last_position)%359                // если достиг цели
+        Serial.println("приехал ПРАво");
+        last_position = Az;
+        // ОТПРАВЛЯЕМ ДАННЫЕ
+        //turn_deg = 0;
+        //stepper.reset();        // обнуление положения 0
+        break;
+      }
+    }
+  }
+}
+
+
 void Print() {
 //___________________________________________________________________________________________________________________
 //                                   ВЫВОД
@@ -270,13 +326,18 @@ void Print() {
 //  Serial.print("Ra_turn: "); Serial.println(Ra_turn);
 //  Serial.print("Ra: "); Serial.println(Ra);
 
-  Serial.println("Навигация");
-  Serial.print("Дата : "); Serial.print(date); Serial.print("."); Serial.print(month%12); Serial.print("."); Serial.println(year);
-  Serial.print("Время: "); Serial.print(hour); Serial.print(":"); Serial.println(minute);
-  Serial.print("Dec гр: "); Serial.println(degDec);
-  Serial.print("Ra_h: "); Serial.println(Ra_h);
-  Serial.print("Азимут: "); Serial.print(Az); Serial.println("градусы");
-  Serial.print("Высота: "); Serial.print(Alt); Serial.println("градусы");
+//  Serial.println("Навигация");
+//  Serial.print("Дата : "); Serial.print(date); Serial.print("."); Serial.print(month%12); Serial.print("."); Serial.println(year);
+//  Serial.print("Время: "); Serial.print(hour); Serial.print(":"); Serial.println(minute);
+//  Serial.print("Dec гр: "); Serial.println(degDec);
+//  Serial.print("Ra_h: "); Serial.println(Ra_h);
+//  Serial.print("Азимут: "); Serial.print(Az); Serial.println("градусы");
+//  Serial.print("Высота: "); Serial.print(Alt); Serial.println("градусы");
 //  Serial.print("Ra(t) час: "); Serial.print(Ra_turn/60);  Serial.print(":"); Serial.println(int(Ra_turn)%60);
-//  Serial.println(" ");
+
+//  Serial.print("Новая позиция:"); Serial.println(Az);
+//  Serial.print("Последняя позиция:"); Serial.println(last_position);
+  Serial.print("Повернул на "); Serial.print(turn_deg); Serial.println(" углов"); // ОТПРАВЛЯЕМ TURN_DEG
+//  Serial.print("Pos: "); Serial.print(pos);
+  Serial.println(" ");
 }

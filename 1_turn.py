@@ -4,7 +4,7 @@
 # //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 last_position = 343   # начальная позиция
 new_position = 50   # Азимут
-turn = 0                                # шаги в градусах до намеченной цели
+turn_deg = 0                                # шаги в градусах до намеченной цели
 
 # //___________________________________________________________________________________________________________________
 # //                                   ПОВОРОТ КУПОЛА
@@ -27,23 +27,23 @@ print(pos)
 
 if pos == turn_L and pos <= 180:        # движение вправо
     print('Еду леВО')
-    while pos != turn:
+    while pos != turn_deg:
         # КОД ДЛЯ МОТОРА
-        turn = 0 - pos                  # отсчёт шагов для цели
-        pos = turn
-        if new_position == abs(turn):        # если достиг цели
+        turn_deg = 0 - pos                  # отсчёт шагов для цели
+        pos = turn_deg
+        if new_position == abs(turn_deg):        # если достиг цели
             print('приехал влево')
             last_position = new_position
             break
 else:
     print('Еду ПРАво')                   # движение влево
-    while new_position - last_position != turn:
+    while new_position - last_position != turn_deg:
         # КОД ДЛЯ МОТОРА
-        turn += 1                       # отсчёт шагов до цели
-        if pos == turn:                 # если достиг цели
+        turn_deg += 1                       # отсчёт шагов до цели
+        if pos == turn_deg:                 # если достиг цели
             print('приехал вправо')
             last_position = new_position
             break
 
-print('Повернул на', turn, 'углов')
+print('Повернул на', turn_deg, 'углов')
 print('Текущая позиция: ', last_position, '\n')
