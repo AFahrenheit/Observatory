@@ -1,49 +1,89 @@
-# Нужно количество шагов мотора на 1 градус
 # //___________________________________________________________________________________________________________________
 # //                                   ПОВОРОТ КУПОЛА
 # //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-last_position = 343   # начальная позиция
-new_position = 50   # Азимут
-turn_deg = 0                                # шаги в градусах до намеченной цели
+# ПРАВО +169 1
+# last_position = 190   # Текущая позиция
+# Az = 359   # Азимут
+
+# ПРАВО +160 1
+# last_position = 0   # Текущая позиция
+# Az = 160   # Азимут
+
+# ПРАВО +140 1
+# last_position = 10   # Текущая позиция
+# Az = 150   # Азимут
+
+# ПРАВО +126 1
+# last_position = 14   # Текущая позиция
+# Az = 140   # Азимут
+
+# ВЛЕВО -170
+# last_position = 0   # Текущая позиция
+# Az = 190   # Азимут
+
+# ПРАВО +109
+# last_position = 290   # Текущая позиция
+# Az = 39   # Азимут
+
+# ЛЕВО -20 4
+# last_position = 290   # Текущая позиция
+# Az = 270   # Азимут
+
+# ЛЕВО -175
+# last_position = 290   # Текущая позиция
+# Az = 115   # Азимут
+
+# ПРАВО +175
+# last_position = 290   # Текущая позиция
+# Az = 105   # Азимут
+
+# turn_deg = 0                                # шаги в градусах до намеченной цели
 
 # //___________________________________________________________________________________________________________________
 # //                                   ПОВОРОТ КУПОЛА
 # //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-turn_L = last_position + new_position   # вычисление шагов вЛево
-turn_R = new_position - last_position   # вычисление шагов вПраво
 
-print('Начальная позиция:', last_position)
-print('Новая позиция:', new_position)
+last_position = 0   # Текущая позиция
+Az = 0   # Азимут
+count = 0
 
-if turn_R < 0:                          # если вПраво через точку 0
-    turn_R += 360
+while (Az < 359):                #  для WHILE
 
-if turn_L >= 359:                          # если вЛЕво через точку 0
-    turn_L = 360 - new_position + last_position
+    count += 1
+    if last_position >= 358:     #  для WHILE
+        Az += 1                 #  для WHILE
+        last_position = 0        #  для WHILE
 
-pos = min(turn_L, turn_R)               # выбор наименьшего пути право/лево
+    turn_L = (last_position - Az)   # вычисление шагов вЛево
+    turn_R = (Az - last_position)   # вычисление шагов вПраво
 
-print(pos)
+    print(f'\nДвигаемся с {last_position} на {Az}. Разница {Az - last_position}')
 
-if pos == turn_L and pos <= 180:        # движение вправо
-    print('Еду леВО')
-    while pos != turn_deg:
-        # КОД ДЛЯ МОТОРА
-        turn_deg = 0 - pos                  # отсчёт шагов для цели
-        pos = turn_deg
-        if new_position == abs(turn_deg):        # если достиг цели
-            print('приехал влево')
-            last_position = new_position
-            break
-else:
-    print('Еду ПРАво')                   # движение влево
-    while new_position - last_position != turn_deg:
-        # КОД ДЛЯ МОТОРА
-        turn_deg += 1                       # отсчёт шагов до цели
-        if pos == turn_deg:                 # если достиг цели
-            print('приехал вправо')
-            last_position = new_position
-            break
+    pos = min(turn_L, turn_R)              # выбор наименьшего пути право/лево
 
-print('Повернул на', turn_deg, 'углов')
-print('Текущая позиция: ', last_position, '\n')
+    if (Az - last_position == 0):
+        print('Стоим.')
+
+    elif (Az > last_position and abs(pos) < 180): # or (Az - last_position < -180):
+        print('1 Еду ПРАво', abs(pos), 'углов')
+
+    elif (Az - last_position < -180):
+        pos = 360 + (Az - last_position)
+        print('1 Еду ПРАво', abs(pos), 'углов')
+
+    elif abs(pos) >= 180:
+        pos += 360
+        if pos > 0:
+            pos *= -1
+        print('2 Еду ЛЕво', pos, 'углов') # сделать минус
+
+    elif (Az - last_position) > 180:
+        pos = Az - last_position
+        print('3 Еду ПРАво', pos, 'углов')
+
+    else:
+        print('4 Еду лево', pos, 'углов')
+
+
+    last_position += 1         #  для WHILE
+print(f'\nКоличество вариантов {count}')

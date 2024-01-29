@@ -209,7 +209,7 @@ def norm_0_to_24(x: float)  -> float:
 
 
 # ТЕСТОВЫЕ ЗНАЧЕНИЯ
-test_star = 5
+test_star = 3
 
 # КОНСТАНТЫ ДЛЯ МОЕГО РАСПОЛОЖЕНИЯ
 pLongitude = 37.9111 * 0.0175
@@ -227,29 +227,29 @@ pHA = hour_angel(pGST, pLongitude, Ra_h)
 Az, Alt, AzEq = dec_ra_to_alt_az(pHA, Dec_rad, pLatitude) # AzEq,
 
 # ВЫВОД ИНФОРМАЦИИ
-print('Название: ', name)
-print('Время:    ', str(Hours) + ':' + str(Minutes))
-print('Дата:     ', str(pDay)+'.'+str(pMonth)+'.'+str(pYear), '\n')
-print('Долгота:  ', round(pLongitude, 4))
-print('Широта:   ', round(pLatitude, 4), '\n')
-print('Прямое. восх:  ', round(Ra_h, 2))
-print('Склонение гр.: ', round(Dec_rad, 3), 90 - round(Dec_rad, 3)) # Используются часы от центра
-print('Юлиан. кал.:   ', JD, '\n')
-print('ulT:   ', round(ulT, 2))
-print('ulR0:  ', round(ulR0, 2))
-print('ulR1:  ', round(ulR1, 2))
+# print('Название: ', name)
+# print('Время:    ', str(Hours) + ':' + str(Minutes))
+# print('Дата:     ', str(pDay)+'.'+str(pMonth)+'.'+str(pYear), '\n')
+# print('Долгота:  ', round(pLongitude, 4))
+# print('Широта:   ', round(pLatitude, 4), '\n')
+# print('Прямое. восх:  ', round(Ra_h, 2))
+# print('Склонение гр.: ', round(Dec_rad, 3), 90 - round(Dec_rad, 3)) # Используются часы от центра
+# print('Юлиан. кал.:   ', JD, '\n')
+# print('ulT:   ', round(ulT, 2))
+# print('ulR0:  ', round(ulR0, 2))
+# print('ulR1:  ', round(ulR1, 2))
 
-print('ulT0:  ', round(ulT0, 2),'\n')
+# print('ulT0:  ', round(ulT0, 2),'\n')
 
-print('pUT:  ', round(pUT, 2), '   ', int(pUT), ':', round((pUT % 1) * 60))
-print('pGST: ', round(pGST, 2), '  ', int(pGST), ':', round((pGST % 1) * 60))
-print('pLST: ', round(pLST, 2),'  ', int(pLST), ':', round((pLST % 1) * 60))
+# print('pUT:  ', round(pUT, 2), '   ', int(pUT), ':', round((pUT % 1) * 60))
+# print('pGST: ', round(pGST, 2), '  ', int(pGST), ':', round((pGST % 1) * 60))
+# print('pLST: ', round(pLST, 2),'  ', int(pLST), ':', round((pLST % 1) * 60))
 
-print('LocalTime:   ', pLTime, '  ', int(pLTime), ':', round((pLTime - int(pLTime)) * 60))
+# print('LocalTime:   ', pLTime, '  ', int(pLTime), ':', round((pLTime - int(pLTime)) * 60))
 
-print('Ч.У.: ', round(pHA, 2), '  ',  int(pHA), ':', round((pHA % 1) * 60), '\n')
+# print('Ч.У.: ', round(pHA, 2), '  ',  int(pHA), ':', round((pHA % 1) * 60), '\n')
 
 print('AzEq: ', round(AzEq, 2), 'радианы', '\n')
 
 print('Азимут: ', round(Az, 1))
-print('Высота: ', round(Alt, 1))
+# print('Высота: ', round(Alt, 1))

@@ -57,6 +57,7 @@ void loop() {
       }
     }
   }
+
   else {
     Serial.println('Еду ЛЕво');                   // движение влево
 
