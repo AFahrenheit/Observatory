@@ -2,24 +2,27 @@
 # //___________________________________________________________________________________________________________________
 # //                                   ПОВОРОТ КУПОЛА
 # //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-last_position = 343   # начальная позиция
-new_position = 50   # Азимут
+last_position = 50   # текущая позиция
+Az = 343   # Азимут
 turn = 0                                # шаги в градусах до намеченной цели
 
 # //___________________________________________________________________________________________________________________
 # //                                   ПОВОРОТ КУПОЛА
 # //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-turn_L = last_position + new_position   # вычисление шагов вЛево
-turn_R = new_position - last_position   # вычисление шагов вПраво
+turn_L = last_position + Az   # вычисление шагов вЛево
+turn_R = Az - last_position   # вычисление шагов вПраво
 
-print('Начальная позиция:', last_position)
-print('Новая позиция:', new_position)
+print('Текущая позиция:', last_position)
+print('Новая позиция:', Az)
+
+print(f'\nДвигаемся с {last_position} на {Az}. Разница {Az - last_position}')
+
 
 if turn_R < 0:                          # если вПраво через точку 0
     turn_R += 360
 
 if turn_L >= 359:                          # если вЛЕво через точку 0
-    turn_L = 360 - new_position + last_position
+    turn_L = 360 - Az + last_position
 
 pos = min(turn_L, turn_R)               # выбор наименьшего пути право/лево
 
@@ -31,18 +34,18 @@ if pos == turn_L and pos <= 180:        # движение вправо
         # КОД ДЛЯ МОТОРА
         turn = 0 - pos                  # отсчёт шагов для цели
         pos = turn
-        if new_position == abs(turn):        # если достиг цели
+        if Az == abs(turn):        # если достиг цели
             print('приехал влево')
-            last_position = new_position
+            last_position = Az
             break
 else:
     print('Еду ПРАво')                   # движение влево
-    while new_position - last_position != turn:
+    while Az - last_position != turn:
         # КОД ДЛЯ МОТОРА
         turn += 1                       # отсчёт шагов до цели
         if pos == turn:                 # если достиг цели
             print('приехал вправо')
-            last_position = new_position
+            last_position = Az
             break
 
 print('Повернул на', turn, 'углов')
