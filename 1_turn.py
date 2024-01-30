@@ -44,7 +44,7 @@
 
 last_position = 0   # Текущая позиция
 Az = 0   # Азимут
-count = 0
+count = 0     #  для WHILE
 
 while (Az < 359):                #  для WHILE
 
@@ -53,8 +53,8 @@ while (Az < 359):                #  для WHILE
         Az += 1                 #  для WHILE
         last_position = 0        #  для WHILE
 
-    turn_L = (last_position - Az)   # вычисление шагов вЛево
-    turn_R = (Az - last_position)   # вычисление шагов вПраво
+    turn_L = last_position - Az   # вычисление шагов вЛево
+    turn_R = Az - last_position   # вычисление шагов вПраво
 
     print(f'\nДвигаемся с {last_position} на {Az}. Разница {Az - last_position}')
 

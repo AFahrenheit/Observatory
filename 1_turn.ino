@@ -1,78 +1,32 @@
-//___________________________________________________________________________________________________________________
-//                                   ПОВОРОТ КУПОЛА
-//‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-int last_position = 0;   # последняя позиция
-int new_position = 0;   # Азимут
-int turn_deg = 0;                                // шаги в градусах до намеченной цели (шагов мотора на 1 градус)
+last_position = 0;   // Текущая позиция
+Az = 0;   // Азимут
 
-void setup() {
-    Serial.begin(115200);
-}
+// Serial.print("Двигаемся с"); Serial.print(last_position); Serial.print("на"); Serial.println(Az);
 
-void loop() {
+turn_L = last_position - Az;   // вычисление шагов вЛево
+turn_R = Az - last_position;   // вычисление шагов вПраво
 
-//___________________________________________________________________________________________________________________
-//                                   ПОВОРОТ КУПОЛА
-//‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-  if (count_LP == 1) {
-  last_position = Az;
-  //turn_deg = 0;
-  }
+pos = min(turn_L, turn_R);              // выбор наименьшего пути право/лево
 
-  turn_L = last_position + Az;   // вычисление шагов вЛево
-  turn_R = last_position - Az;   // вычисление шагов вПраво
+if (Az - last_position == 0){
+    Serial.println("Стоим.");}
 
-//  turn_L = (last_position + Az) % 359;   // вычисление шагов вЛево
-//  turn_R = (Az - last_position) % 359;   // вычисление шагов вПраво
+if (Az > last_position and abs(pos) < 180) {
+    Serial.print("1 Еду ПРАво"); Serial.print(abs(pos)); Serial.print("углов");}
 
-//  Serial.print("Начальная позиция:"); Serial.println(last_position);
-//  Serial.print("Новая позиция:"); Serial.println(Az);
+if (Az - last_position < -180) {
+    pos = 360 + (Az - last_position);
+    Serial.print("1 Еду ПРАво"); Serial.print(abs(pos)); Serial.print("углов");}
 
-  if (turn_R < 0) {                          // если вПраво через точку 0
-    turn_R += 361;
-  }
-  if (turn_L >= 359) {                         // если вЛЕво через точку 0
-    turn_L = 360 - Az + last_position;
-  }
+if (abs(pos) >= 180){
+    pos += 360;
+    if (pos > 0) {
+        pos *= -1;}
+    Serial.print("2 Еду levo"); Serial.print(pos); Serial.print("углов");}  // сделать минус
 
-  pos = min(turn_L, turn_R);               // выбор наименьшего пути право/лево
+if (Az - last_position > 180) {
+    pos = Az - last_position;
+    Serial.print("3 Еду ПРАво"); Serial.print(pos); Serial.print("углов");}
 
-//  if (last_position == Az) {
-//    Serial.println("Стою");
-//  }
-
-  if (pos == turn_L && pos <= 180) {        // движение вправо
-    Serial.println('Еду ПРАво');
-
-    while (pos != turn_deg) {
-    //while (abs(Az - last_position) != turn_deg) {
-      count_LP = 0;
-      turn_deg += 1;                       // отсчёт шагов до цели
-
-      if (Az == turn_deg) {        // если достиг цели
-        Serial.println("приехал ПРАво");
-        // ОТПРАВЛЯЕМ ДАННЫЕ
-        //last_position = Az;
-        break;
-      }
-    }
-  }
-
-  else {
-    Serial.println('Еду ЛЕво');                   // движение влево
-
-    while (Az - last_position != turn_deg) {
-      count_LP = 0;
-
-      turn_deg = 0 - pos;                  // отсчёт шагов для цели
-      pos = turn_deg;
-
-      if (pos == turn_deg) {                 // если достиг цели
-      // if ((Az == (abs(turn_deg) + last_position) % 359)) { //  {                // если достиг цели
-        Serial.println("приехал ЛЕво");
-        // ОТПРАВЛЯЕМ ДАННЫЕ
-        break;
-      }
-    }
-  }
-}
+else {
+    Serial.print("4 Еду levo"); Serial.print(pos); Serial.print("углов");}
