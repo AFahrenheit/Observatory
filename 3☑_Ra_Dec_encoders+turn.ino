@@ -48,7 +48,7 @@ uint8_t pTz = 3;         // Часовой пояс
 
 float HA; float HA_1;
 float AzEq; float pAzHor; float pAltHor;
-int Az; int Alt;                // азимут
+float Az; int Alt;                // азимут
 
 float A; float B;
 float lT; float lR0; float lR1; float lT0;
@@ -56,15 +56,16 @@ float lT; float lR0; float lR1; float lT0;
 //___________________________________________________________________________________________________________________
 //                                   ПОВОРОТ КУПОЛА
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-int last_position = 0;   // последняя позиция
-int turn_R; int turn_L;
-int pos;
+float last_position;   // последняя позиция
+float turn_R; float turn_L;
+float pos;
+int8_t count;
 
 void setup() {
 //___________________________________________________________________________________________________________________
 //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>VOID SETUP<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-  Serial.begin(115200);
+  Serial.begin(9600);
 
 //___________________________________________________________________________________________________________________
 //                                   ЧАСЫ
@@ -75,30 +76,31 @@ void setup() {
   // визуально громоздкий, но более "лёгкий" с точки зрения памяти способ установить время компиляции
   rtc.setTime(BUILD_SEC, BUILD_MIN, BUILD_HOUR, BUILD_DAY, BUILD_MONTH, BUILD_YEAR);
   }
-  delay(7000);                  // ПЕРИОД РАССЧЕТА НОВЫХ ДАННЫХ ОБСЕРВАТОРИИ 5 СЕКУНД
+  delay(5000);                  // ПЕРИОД РАССЧЕТА НОВЫХ ДАННЫХ ОБСЕРВАТОРИИ 5 СЕКУНД
 }
 
 void loop() {
 //___________________________________________________________________________________________________________________
 //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>VOID LOOP<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    calculation_Ra_Dec();
     ra_dec();
     julian_date();
     convert_LocalTime_to_LST();
     hour_angle();
     equatorial_to_horizontal();
-    calculation_Ra_Dec();
-    Print();
     Turn();
-    delay(3000);                  // ПЕРИОД РАССЧЕТА НОВЫХ ДАННЫХ ОБСЕРВАТОРИИ 10 СЕКУНД
+    delay(1000);                  // ПЕРИОД РАССЧЕТА НОВЫХ ДАННЫХ ОБСЕРВАТОРИИ 1 СЕКУНД
+    count += 1;
+    //Serial.print(count);
 }
 void yield() {
 //___________________________________________________________________________________________________________________
 //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>VOID YIELD<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+  times();
   encoders();
 }
-
 void encoders() {
 //___________________________________________________________________________________________________________________
 //                                   ЭНКОДЕРЫ
@@ -108,12 +110,14 @@ void encoders() {
 
   if (enc1.turn()) {
     if (enc1.right()) {
+      count = 0;
       Dec -= 1;
       if (Dec < -4799) {
         Dec = 4800;
       }
     }
     if (enc1.left()) {
+      count = 0;
       Dec += 1;
       if (Dec > 4799) {
         Dec = -4799;
@@ -122,18 +126,27 @@ void encoders() {
   }
   if (enc2.turn()) {
     if (enc2.left()) {
+      count = 0;
       Ra += 1;
       if (Ra > 1199) {  // было 1200
         Ra = 0;
       }
     }
     if (enc2.right()) {
+      count = 0;
       Ra -= 1;
       if (Ra < -1199) {  // было 1200
         Ra += 1;
       }
     }
   }
+}
+void times() {
+  hour = rtc.getHours();       //часы
+  minute = rtc.getMinutes();   //минуты
+  date = rtc.getDate();        //число
+  month = rtc.getMonth();      //месяц
+  year = rtc.getYear();        //год
 }
 void calculation_Ra_Dec() {
 //___________________________________________________________________________________________________________________
@@ -155,19 +168,13 @@ void ra_dec() {
 //___________________________________________________________________________________________________________________
 //                                   ВЫЧИСЛЯЕТ ЧАСЫ RA И РАДИАНЫ DEC
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-  Ra_h = Ra_turn * 0.016666667;
+  Ra_h = Ra_turn / 60; //* 0.016666667; // считается не сразу
   Dec_rad = degDec * 0.0175;
 }
 void julian_date() {
 //___________________________________________________________________________________________________________________
 //                                   ВЫЧИСЛЯЕМ ДАТУ ПО ЮЛИАНСКОМУ КАЛЕНДАРЮ
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-
-  hour = rtc.getHours();       //часы
-  minute = rtc.getMinutes();   //минуты
-  date = rtc.getDate();        //число
-  month = rtc.getMonth();      //месяц
-  year = rtc.getYear();        //год
 
   if (month <= 2) {
     year -= 1;
@@ -239,71 +246,61 @@ void Turn() {
     turn_R = Az - last_position;   // вычисление шагов вПраво
     pos = min(turn_L, turn_R);              // выбор наименьшего пути право/лево
 
-//    if (turn_R == 0 || turn_L == 0){
-//        Serial.println("Стоим.");}
+    if (count == 5){   //Az != last_position && count > 3 если значения не меняются, то ничего не делать
+      Print();
 
-    if (Az > last_position and abs(pos) < 180) {
-        // ОТПРАВЛЯЕМ abs(pos)
-        Serial.print("1 Еду ПРАво"); Serial.print(abs(pos)); Serial.println("углов");
-        last_position = Az;}
+      if (pos == 0.00) {
+        Serial.println("Стоим");
+      }
 
-//     else if (turn_R < -180) {
-//         pos = 360 + (turn_R);
-//         Serial.print("1 Еду ПРАво"); Serial.print(abs(pos)); Serial.println("углов");}
+      else if (Az > last_position and abs(pos) < 180.0) {
+          // ОТПРАВЛЯЕМ abs(pos)
+          Serial.print("1 Еду ПРАво"); Serial.print(abs(pos)); Serial.println("углов");
+          last_position = Az;}
 
-    else if (abs(pos) >= 180){
-        pos += 359;
-        if (pos > 1) {
-            pos *= -1;}
-        // ОТПРАВЛЯЕМ pos
-        Serial.print("2 Еду levo"); Serial.print(pos); Serial.println("углов");
-        last_position = Az;}  // сделать минус
+      else if (turn_R < -180.0) {
+          pos = 360.0 + (turn_R);
+          // ОТПРАВЛЯЕМ abs(pos)
+          Serial.print("2 Еду ПРАво"); Serial.print(abs(pos)); Serial.println("углов");
+          last_position = Az;}
 
-//     else if (turn_R > 180) {
-//         pos = turn_R;
-//         Serial.print("3 Еду ПРАво"); Serial.print(pos); Serial.println("углов");}
+      else if (abs(pos) >= 180.0){
+          pos += 359.0;
+          if (pos > 1) {
+              pos *= -1;}
+          // ОТПРАВЛЯЕМ pos
+          Serial.print("3 Еду levo"); Serial.print(pos); Serial.println("углов");
+          last_position = Az;}
 
-    else if (abs(turn_R) > 180) {
-        if (turn_R < -180){
-            pos = 360 + (turn_R);
-            // ОТПРАВЛЯЕМ abs(pos)
-           Serial.print("4 Еду ПРАво"); Serial.print(abs(pos)); Serial.println("углов");
+//       else if (turn_R > 180.0) {
+//           pos = turn_R;
+//           Serial.print("3 Еду ПРАво"); Serial.print(pos); Serial.println("углов");
+//           last_position = Az;}
+
+       else if (abs(turn_R) > 180.0) {
+           if (turn_R < -180.0){
+               pos = 360.0 + turn_R;
+               // ОТПРАВЛЯЕМ abs(pos)
+              Serial.print("4 Еду ПРАво"); Serial.print(abs(pos)); Serial.println("углов");
+              last_position = Az;}
+
+       else if (turn_R > 180.0){
+           pos = turn_R;
+           // ОТПРАВЛЯЕМ pos
+           Serial.print("5 Еду ПРАво"); Serial.print(pos); Serial.println("углов");
+           last_position = Az;}}
+
+       else {
+           // ОТПРАВЛЯЕМ pos
+           Serial.print("6 Еду levo"); Serial.print(pos); Serial.println("углов");
            last_position = Az;}
-
-        else if (turn_R > 180){
-            pos = turn_R;
-            // ОТПРАВЛЯЕМ pos
-            Serial.print("1 Еду ПРАво"); Serial.print(pos); Serial.println("углов");
-            last_position = Az;}}
-
-    else {
-        // ОТПРАВЛЯЕМ pos
-        Serial.print("4 Еду levo"); Serial.print(pos); Serial.println("углов");
-        last_position = Az;}
+      Serial.println(" ");
+    }
 }
 void Print() {
 //___________________________________________________________________________________________________________________
 //                                   ВЫВОД
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-
-//  Serial.print("Dec_rad: "); Serial.println(Dec_rad);
-//  Serial.print("sin(Dec_rad): "); Serial.println(sin(Dec_rad));
-//  Serial.print("cos(Dec_rad): "); Serial.println(cos(Dec_rad));
-//  Serial.print("Lat_rad: "); Serial.println(Lat_rad);
-//  Serial.print("sin(Lat_rad): "); Serial.println(sin(Lat_rad));
-//  Serial.print("cos(Lat_rad): "); Serial.println(cos(Lat_rad));
-//  Serial.print("AzEq: "); Serial.println(AzEq);
-//  Serial.print("cos(AzEq): "); Serial.println(cos(AzEq));
-//  Serial.print("(sin(Dec_rad) * sin(Lat_rad)): "); Serial.println((sin(Dec_rad) * sin(Lat_rad)));
-//  Serial.print("(cos(Dec_rad) * cos(Lat_rad) * cos(AzEq)): "); Serial.println((cos(Dec_rad) * cos(Lat_rad) * cos(AzEq)));
-//  Serial.print("pAltHor"); Serial.println(pAltHor);
-//
-//  Serial.print("sin(pAltHor): "); Serial.println(sin(pAltHor));
-//  Serial.print("cos(pAltHor): "); Serial.println(cos(pAltHor));
-//  Serial.print("(sin(Dec_rad) - (sin(Lat_rad) * sin(pAltHor)): "); Serial.println((sin(Dec_rad) - (sin(Lat_rad) * sin(pAltHor))));
-//  Serial.print("(cos(Lat_rad) * cos(pAltHor)): "); Serial.println((cos(Lat_rad) * cos(pAltHor)));
-//  Serial.print("(sin(Dec_rad) - (sin(Lat_rad) * sin(pAltHor))) / (cos(Lat_rad) * cos(pAltHor)): "); Serial.println((sin(Dec_rad) - (sin(Lat_rad) * sin(pAltHor))) / (cos(Lat_rad) * cos(pAltHor)));
-//  Serial.print("pAzHor"); Serial.println(pAzHor);
 
 //  Serial.print("Юлиан. кал.: "); Serial.println(JD);
 //  Serial.print("lT: "); Serial.println(lT);
@@ -327,16 +324,16 @@ void Print() {
 //  Serial.print("Ra: "); Serial.println(Ra);
 
   Serial.println("Навигация");
-  Serial.print("Дата : "); Serial.print(date); Serial.print("."); Serial.print(month%12); Serial.print("."); Serial.println(year);
-  Serial.print("Время: "); Serial.print(hour); Serial.print(":"); Serial.println(minute);
+//  Serial.print("Дата : "); Serial.print(date); Serial.print("."); Serial.print(month%12); Serial.print("."); Serial.println(year);
+//  Serial.print("Время: "); Serial.print(hour); Serial.print(":"); Serial.println(minute);
 //  Serial.print("Dec гр: "); Serial.println(degDec);
-  Serial.print("Ra_h: "); Serial.println(Ra_h);
+//  Serial.print("Ra_h: "); Serial.println(Ra_h);
   Serial.print("Азимут: "); Serial.print(Az); Serial.println("градусы");
 //  Serial.print("Высота: "); Serial.print(Alt); Serial.println("градусы");
 //  Serial.print("Ra(t) час: "); Serial.print(Ra_turn/60);  Serial.print(":"); Serial.println(int(Ra_turn)%60);
 
 //  Serial.print("Новая позиция:"); Serial.println(Az);
   Serial.print("Последняя позиция:"); Serial.println(last_position);
-  Serial.print("Повернул на "); Serial.print(pos); Serial.println(" углов"); // ОТПРАВЛЯЕМ pos
-  Serial.println(" ");
+//  Serial.print("Повернул на "); Serial.print(pos); Serial.println(" углов"); // ОТПРАВЛЯЕМ pos
+  count = 0;
 }
