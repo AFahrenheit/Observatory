@@ -88,8 +88,8 @@ void loop() {
     hour_angle();
     equatorial_to_horizontal();
     calculation_Ra_Dec();
-    Print();
     Turn();
+    Print();
     delay(3000);                  // ПЕРИОД РАССЧЕТА НОВЫХ ДАННЫХ ОБСЕРВАТОРИИ 10 СЕКУНД
 }
 void yield() {
@@ -135,22 +135,7 @@ void encoders() {
     }
   }
 }
-void calculation_Ra_Dec() {
-//___________________________________________________________________________________________________________________
-//                                   РАСЧЁТ ПОЛОЖЕНИЯ ТЕЛЕСКОПА
-//‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 
-  degDec = 90.0 - ((4800.0 - abs(Dec)) / 13.3);
-
-  if (Dec < 0) {
-    x = 1;
-    Ra_turn = int(x * 360 - (Ra * 0.3) + (pLST * 60)) % 1440;
-  }
-  else if (Dec > 0) {
-    x = 3;
-    Ra_turn = int(x * 360 - (Ra * 0.3) + (pLST * 60)) % 1440;
-  }
-}
 void ra_dec() {
 //___________________________________________________________________________________________________________________
 //                                   ВЫЧИСЛЯЕТ ЧАСЫ RA И РАДИАНЫ DEC
@@ -220,6 +205,22 @@ void equatorial_to_horizontal() {
     pAzHor = 2 * PI - pAzHor;}
   Az = pAzHor * 57.3;
   Alt = pAltHor * 57.3;
+}
+void calculation_Ra_Dec() {
+//___________________________________________________________________________________________________________________
+//                                   РАСЧЁТ ПОЛОЖЕНИЯ ТЕЛЕСКОПА
+//‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+
+  degDec = 90.0 - ((4800.0 - abs(Dec)) / 13.3);
+
+  if (Dec < 0) {
+    x = 1;
+    Ra_turn = int(x * 360 - (Ra * 0.3) + (pLST * 60)) % 1440;
+  }
+  else if (Dec > 0) {
+    x = 3;
+    Ra_turn = int(x * 360 - (Ra * 0.3) + (pLST * 60)) % 1440;
+  }
 }
 float normalize0to24(float x) {
 //___________________________________________________________________________________________________________________
@@ -330,7 +331,7 @@ void Print() {
   Serial.print("Дата : "); Serial.print(date); Serial.print("."); Serial.print(month%12); Serial.print("."); Serial.println(year);
   Serial.print("Время: "); Serial.print(hour); Serial.print(":"); Serial.println(minute);
 //  Serial.print("Dec гр: "); Serial.println(degDec);
-  Serial.print("Ra_h: "); Serial.println(Ra_h);
+//  Serial.print("Ra_h: "); Serial.println(Ra_h);
   Serial.print("Азимут: "); Serial.print(Az); Serial.println("градусы");
 //  Serial.print("Высота: "); Serial.print(Alt); Serial.println("градусы");
 //  Serial.print("Ra(t) час: "); Serial.print(Ra_turn/60);  Serial.print(":"); Serial.println(int(Ra_turn)%60);
