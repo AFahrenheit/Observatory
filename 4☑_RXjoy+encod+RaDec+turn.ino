@@ -257,64 +257,76 @@ void Turn() {
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
     turn_L = last_position - Az;   // вычисление шагов вЛево
     turn_R = Az - last_position;   // вычисление шагов вПраво
-    pos = min(turn_L, turn_R);              // выбор наименьшего пути право/лево
+    pos = min(turn_L, turn_R);     // выбор наименьшего пути право/лево
 
-    if (count == 3){   //Az != last_position && count > 3 если значения не меняются, то ничего не делать
-        count = 0; //Print();
+    if (count == 3){   // Az != last_position && count > 3 если значения не меняются, то ничего не делать
+        count = 0;     // Print();
 
         if (pos == 0.00) {
             Serial.println(f("Стоим"));}       // ПРИНТ
 
         else if (Az > last_position and abs(pos) < 180.0) {
-            data[0] = abs(pos) * 100;
-            radio.write(data, 2);       // отправляю float int=2/float=4
-            Serial.println(data);       // ПРИНТ
-            //Serial.print("1 Еду ПРАво"); Serial.print(abs(pos)); Serial.println("углов");
-            last_position = Az;}
+//            data[0] = abs(pos) * 100;
+//             radio.write(data, 2);       // отправляю float int=2/float=4
+//             Serial.print(f("Массив: ")); Serial.println(data);       // ПРИНТ
+//             //Serial.print("1 Еду ПРАво"); Serial.print(abs(pos)); Serial.println("углов");
+//             last_position = Az;
+            radio(abs(pos) * 100);}
 
         else if (turn_R < -180.0) {
             pos = 360.0 + (turn_R);
-            data[0] = abs(pos) * 100;
-            radio.write(data, 2);       // отправляю float int=2/float=4
-            Serial.println(data);       // ПРИНТ
-            //Serial.print("2 Еду ПРАво"); Serial.print(abs(pos)); Serial.println("углов");
-            last_position = Az;}
+//            data[0] = abs(pos) * 100;
+//             radio.write(data, 2);       // отправляю float int=2/float=4
+//             Serial.print(f("Массив: ")); Serial.println(data);       // ПРИНТ
+//             //Serial.print("2 Еду ПРАво"); Serial.print(abs(pos)); Serial.println("углов");
+//             last_position = Az;
+            radio(abs(pos) * 100);}
 
         else if (abs(pos) >= 180.0){
             pos += 359.0;
             if (pos > 1) {
                 pos *= -1;}
-            data[0] = pos * 100;
-            radio.write(data, 2);       // отправляю float*100 int=2/float=4
-            Serial.println(data);       // ПРИНТ
-            //Serial.print("3 Еду levo"); Serial.print(pos); Serial.println("углов");
-            last_position = Az;}
+//            data[0] = pos * 100;
+//             radio.write(data, 2);       // отправляю float*100 int=2/float=4
+//             Serial.print(f("Массив: ")); Serial.println(data);       // ПРИНТ
+//             //Serial.print("3 Еду levo"); Serial.print(pos); Serial.println("углов");
+//             last_position = Az;
+            radio(pos * 100);}
 
         else if (abs(turn_R) > 180.0) {
             if (turn_R < -180.0){
                 pos = 360.0 + turn_R;}
-            data[0] = abs(pos) * 100;
-            radio.write(data, 2);       // отправляю float*100 int=2/float=4
-            Serial.println(data);       // ПРИНТ
-            //Serial.print("4 Еду ПРАво"); Serial.print(abs(pos)); Serial.println("углов");
-            last_position = Az;}
+//                data[0] = abs(pos) * 100;
+//                radio.write(data, 2);       // отправляю float*100 int=2/float=4
+//                Serial.print(f("Массив: ")); Serial.println(data);       // ПРИНТ
+//                //Serial.print("4 Еду ПРАво"); Serial.print(abs(pos)); Serial.println("углов");
+//                last_position = Az;
+                radio(abs(pos) * 100);}
 
             else if (turn_R > 180.0){
                 pos = turn_R;
-                data[0] = pos * 100;
-                radio.write(data, 2);       // отправляю float*100 int=2/float=4
-                Serial.println(data);       // ПРИНТ
-                //Serial.print("5 Еду ПРАво"); Serial.print(pos); Serial.println("углов");
-                last_position = Az;}}
+//                data[0] = pos * 100;
+//                radio.write(data, 2);       // отправляю float*100 int=2/float=4
+//                Serial.print(f("Массив: ")); Serial.println(data);       // ПРИНТ
+//                //Serial.print("5 Еду ПРАво"); Serial.print(pos); Serial.println("углов");
+//                last_position = Az;
+                radio(pos * 100);}}
 
         else {
-            data[0] = pos * 100;
-            radio.write(data, 2);       // отправляю float*100 int=2/float=4
-            Serial.println(data);       // ПРИНТ
-            //Serial.print("6 Еду levo"); Serial.print(pos); Serial.println("углов");
-            last_position = Az;}
-        //Serial.println(" ");
+//            data[0] = pos * 100;
+//            radio.write(data, 2);       // отправляю float*100 int=2/float=4
+//            Serial.print(f("Массив: ")); Serial.println(data);       // ПРИНТ
+//            //Serial.print("6 Еду levo"); Serial.print(pos); Serial.println("углов");
+//            last_position = Az;
+            radio(pos * 100);}
+//        Serial.println(" ");
     }
+}
+
+void radio(int data[0]) {
+    radio.write(data, 2);       // отправляю float*100 int=2/float=4
+    Serial.print(f("Массив: ")); Serial.println(data);       // ПРИНТ
+    last_position = Az;
 }
 // void Print() {
 // //___________________________________________________________________________________________________________________
