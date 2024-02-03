@@ -12,10 +12,10 @@ void setup() {
 
 void loop() {
     stepper.tick();
-    static uint32_t tmr2;
-    if (millis() - tmr2 > 20) {
-      tmr2 = millis();
-    }
+//     static uint32_t tmr2;
+//     if (millis() - tmr2 > 20) {
+//       tmr2 = millis();
+//     }
     stepper.setTargetDeg(incoming, ABSOLUTE);
 
     if (stepper.ready()) {

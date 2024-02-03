@@ -88,17 +88,17 @@ void task_controller() {
   //Serial.println(F("Проверяю кнопочки: "));                           // ПРИНТ
   if (butt1.isHolded()) {
     Serial.println(F("влево"));                                    // ПРИНТ
-    data[0] = 9;                                                     // Записываем значение 1 в массив data
+    data[0] = "L";                                                     // Записываем значение 1 в массив data
     radio.write(data, 1);
   }
   else if (butt2.isHolded()) {
     //Serial.println(F("вправо"));                                   // ПРИНТ
-    data[0] = 5;                                                     // Записываем значение 2 в массив data
+    data[0] = "R";                                                     // Записываем значение 2 в массив data
     radio.write(data, 1);
   }
   else if (butt1.isClick() || butt2.isClick()) {
     Serial.println(F("Стоп"));             // ПРИНТ
-    data[0] = 1;                                                     // Записываем значение 1 в массив data
+    data[0] = "S";                                                     // Записываем значение 1 в массив data
     radio.write(data, 1);
     count = 1;
     //Serial.println(count);              // ПРИНТ
