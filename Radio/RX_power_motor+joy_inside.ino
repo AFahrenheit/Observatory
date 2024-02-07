@@ -100,13 +100,13 @@ void task_motor() {
         radio.read(data, 1);                                     // Считываем данные с массива data и задаем количество считываемых байт
 
         switch (data[0]) {                                       // Если присланый массив data[0] состоит.....
-            case "L": stepper.setSpeed(2000);                      // Поворачиваем двигатель влево
+            case "L": stepper.setSpeed(2000);                      // 9 Поворачиваем двигатель влево
 //                delay(20);
                 break;                                               // брейк
-            case "R": stepper.setSpeed(-2000);                     // Поворачиваем двигатель вправо
+            case "R": stepper.setSpeed(-2000);                     // 5 Поворачиваем двигатель вправо
 //                delay(20);
                 break;                                               // брейк
-            case "S": stepper.stop();                                // Останавливаем двигатель
+            case "S": stepper.stop();                                // 1 Останавливаем двигатель
                 delay(20);
 //                stepper.disable();
                 count += 1;                                          // счёт включения отправки данных датчика

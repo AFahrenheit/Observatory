@@ -14,10 +14,12 @@ int year;          //год
 #include <SPI.h>                                                     // Подключаем библиотеку SPI
 #include <nRF24L01.h>                                                // Подключаем библиотеку nRF24L01
 #include <RF24.h>                                                    // Подключаем библиотеку RF24
+float sending_data;                                                        // отправка данных
+float test;
 //________________________________________________________________________________________________
 //                              ПОДКЛЮЧЕНИЕ РАДИО
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-int data[1];                                                       // Создаём массив для передачи данных
+int32_t data[1];                                                       // Создаём массив для передачи данных
 RF24 radio(9, 10);                                                   // Указываем номера выводов nRF24L01+ (CE, CSN)
 //___________________________________________________________________________________________________________________
 //                                   БИБЛИОТЕКИ ЭНКОДЕРЫ
@@ -69,13 +71,13 @@ void setup() {
 //________________________________________________________________________________________________
 //                                  НАСТРОЙКИ РАДИО
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-  delay(2000);                               // Ждем 2с
+  delay(1000);                               // Ждем 2с
   radio.begin();                             // Инициируем работу nRF24L01+
   //radio.setAutoAck(false);
   radio.setChannel(120);                     // Указываем канал передачи (от 0 до 126)
   radio.setDataRate (RF24_1MBPS);            // Указываем скорость передачи (250KBPS, 1MBPS, 2MBPS)
   radio.setPALevel(RF24_PA_HIGH);            // Указываем мощность передатчика (MIN=-18dBm, LOW=-12dBm, HIGH=-6dBm, MAX=0dBm)
-  radio.openReadingPipe(1, 0xF0F0F0F166);    // Идентификатор для получения данных
+  //radio.openReadingPipe(1, 0xF0F0F0F166);    // Идентификатор для получения данных
   radio.openWritingPipe(0xF0F0F0F066);       // Задаем идентификатор для передачи данных данных
   // radio.flush_tx();                          // Очистка памяти от отправленных данных
 
@@ -88,7 +90,7 @@ void setup() {
   // визуально громоздкий, но более "лёгкий" с точки зрения памяти способ установить время компиляции
   rtc.setTime(BUILD_SEC, BUILD_MIN, BUILD_HOUR, BUILD_DAY, BUILD_MONTH, BUILD_YEAR);
   }
-  delay(5000);                  // ПЕРИОД РАССЧЕТА НОВЫХ ДАННЫХ ОБСЕРВАТОРИИ 5 СЕКУНД
+  delay(3000);                  // ПЕРИОД РАССЧЕТА НОВЫХ ДАННЫХ ОБСЕРВАТОРИИ 5 СЕКУНД
 }
 void loop() {
 //___________________________________________________________________________________________________________________
@@ -259,76 +261,90 @@ void Turn() {
     turn_R = Az - last_position;   // вычисление шагов вПраво
     pos = min(turn_L, turn_R);     // выбор наименьшего пути право/лево
 
-    if (count == 3){   // Az != last_position && count > 3 если значения не меняются, то ничего не делать
-        count = 0;     // Print();
+    if (count == 2){   // Az != last_position && count > 3 если значения не меняются, то ничего не делать
+        count = 0;
+        //Print();
 
-        if (pos == 0.00) {
-            Serial.println(f("Стоим"));}       // ПРИНТ
+        if (pos == 0.0) {
+        }
 
         else if (Az > last_position and abs(pos) < 180.0) {
-//            data[0] = abs(pos) * 100;
-//             radio.write(data, 2);       // отправляю float int=2/float=4
-//             Serial.print(f("Массив: ")); Serial.println(data);       // ПРИНТ
-//             //Serial.print("1 Еду ПРАво"); Serial.print(abs(pos)); Serial.println("углов");
-//             last_position = Az;
-            radio(abs(pos) * 100);}
+            //data[0] = abs(pos) * 100.0;  // передаём градусы
+            data[0] = abs(pos) * 36.0 * 1.0;//  и *(1)обороты редуктора на купол    передаём шаги с редукцией
+            if (data[0] != 0) {
+              Serial.print("1 Еду ПРАво"); Serial.print(abs(pos)); Serial.println("углов");
+              radio.write(data, sizeof(data));
+              //Serial.print(F("Отправил массив: ")); Serial.println(data[0]);       // ПРИНТ
+              last_position = Az;
+            }
+        }
 
         else if (turn_R < -180.0) {
             pos = 360.0 + (turn_R);
-//            data[0] = abs(pos) * 100;
-//             radio.write(data, 2);       // отправляю float int=2/float=4
-//             Serial.print(f("Массив: ")); Serial.println(data);       // ПРИНТ
-//             //Serial.print("2 Еду ПРАво"); Serial.print(abs(pos)); Serial.println("углов");
-//             last_position = Az;
-            radio(abs(pos) * 100);}
+            //data[0] = abs(pos) * 100.0;  // передаём градусы
+            data[0] = abs(pos) * 36.0 * 1.0;//  и *(1)обороты редуктора на купол    передаём шаги с редукцией
+            if (data[0] != 0.0) {
+              Serial.print("2 Еду ПРАво"); Serial.print(abs(pos)); Serial.println("углов");
+              radio.write(data, sizeof(data));
+              //Serial.print(F("Отправил массив: ")); Serial.println(data[0]);       // ПРИНТ
+              last_position = Az;
+            }
+        }
 
         else if (abs(pos) >= 180.0){
             pos += 359.0;
             if (pos > 1) {
                 pos *= -1;}
-//            data[0] = pos * 100;
-//             radio.write(data, 2);       // отправляю float*100 int=2/float=4
-//             Serial.print(f("Массив: ")); Serial.println(data);       // ПРИНТ
-//             //Serial.print("3 Еду levo"); Serial.print(pos); Serial.println("углов");
-//             last_position = Az;
-            radio(pos * 100);}
+            //data[0] = pos * 100.0;  // передаём градусы
+            data[0] = pos * 36.0 * 1.0;//  и *(1)обороты редуктора на купол    передаём шаги с редукцией
+            if (data[0] != 0.0) {
+              Serial.print("3 Еду levo"); Serial.print(pos); Serial.println("углов");
+              radio.write(data, sizeof(data));
+              //Serial.print(F("Отправил массив: ")); Serial.println(data[0]);       // ПРИНТ
+              last_position = Az;
+            }
+        }
 
         else if (abs(turn_R) > 180.0) {
             if (turn_R < -180.0){
                 pos = 360.0 + turn_R;}
-//                data[0] = abs(pos) * 100;
-//                radio.write(data, 2);       // отправляю float*100 int=2/float=4
-//                Serial.print(f("Массив: ")); Serial.println(data);       // ПРИНТ
-//                //Serial.print("4 Еду ПРАво"); Serial.print(abs(pos)); Serial.println("углов");
-//                last_position = Az;
-                radio(abs(pos) * 100);}
+                //data[0] = abs(pos) * 100.0;  // передаём градусы
+                data[0] = abs(pos) * 36.0 * 1.0;//  и *(1)обороты редуктора на купол    передаём шаги с редукцией
+                if (data[0] != 0.0) {
+                  Serial.print("4 Еду ПРАво"); Serial.print(abs(pos)); Serial.println("углов");
+                  radio.write(data, sizeof(data));
+                  //Serial.print(F("Отправил массив: ")); Serial.println(data[0]);       // ПРИНТ
+                  last_position = Az;
+                }
+            }
 
             else if (turn_R > 180.0){
                 pos = turn_R;
-//                data[0] = pos * 100;
-//                radio.write(data, 2);       // отправляю float*100 int=2/float=4
-//                Serial.print(f("Массив: ")); Serial.println(data);       // ПРИНТ
-//                //Serial.print("5 Еду ПРАво"); Serial.print(pos); Serial.println("углов");
-//                last_position = Az;
-                radio(pos * 100);}}
+                //data[0] = pos * 100.0;  // передаём градусы
+                data[0] = pos * 36.0 * 1.0;//  и *(1)обороты редуктора на купол    передаём шаги с редукцией
+                if (data[0] != 0.0) {
+                  Serial.print("5 Еду ПРАво"); Serial.print(pos); Serial.println("углов");
+                  radio.write(data, sizeof(data));
+                  //Serial.print(F("Отправил массив: ")); Serial.println(data[0]);       // ПРИНТ
+                  last_position = Az;
+                }
+            }
 
         else {
-//            data[0] = pos * 100;
-//            radio.write(data, 2);       // отправляю float*100 int=2/float=4
-//            Serial.print(f("Массив: ")); Serial.println(data);       // ПРИНТ
-//            //Serial.print("6 Еду levo"); Serial.print(pos); Serial.println("углов");
-//            last_position = Az;
-            radio(pos * 100);}
-//        Serial.println(" ");
+            //data[0] = pos * 100.0;  // передаём градусы
+            data[0] = pos * 36.0 * 1.0;//  и *(1)обороты редуктора на купол    передаём шаги с редукцией
+            if (data[0] != 0.0) {
+              Serial.print("6 Еду levo"); Serial.print(pos); Serial.println("углов");
+              radio.write(data, sizeof(data));
+              //Serial.print(F("Отправил массив: ")); Serial.println(data[0]);       // ПРИНТ
+              last_position = Az;
+            }
+        }
     }
+    //Serial.println(" ");
 }
 
-void radio(int data[0]) {
-    radio.write(data, 2);       // отправляю float*100 int=2/float=4
-    Serial.print(f("Массив: ")); Serial.println(data);       // ПРИНТ
-    last_position = Az;
-}
-// void Print() {
+//void Print() {
 // //___________________________________________________________________________________________________________________
 // //                                   ВЫВОД
 // //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
