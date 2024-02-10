@@ -57,9 +57,9 @@ void setup() {
 //                                   VOID SETUP
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
   Serial.begin(9600);
-  //stepper.setAcceleration(300);                        // ускорение (умолчание 300)
+  stepper.setAcceleration(1000);                        // ускорение (умолчание 300)
   stepper.autoPower(true);                             // автовыключение питания драйвера
-  stepper.setMaxSpeed(2000);         // установка макс. скорости в шагах/сек
+  stepper.setMaxSpeed(10000);         // установка макс. скорости в шагах/сек
 //  stepper.disable();
   //____________________________________________________________________________________________
   //                                   РАБОТА РАДИО
@@ -143,10 +143,11 @@ void motor() {
     //incoming = data[0] * 0.02;                     // градусы в передаче, нужно /100 по факту
     //stepper.setTargetDeg(incoming, RELATIVE);     // градусы
 
-    Serial.print("Пришла информация: "); Serial.print(data[0]); Serial.print("шагов  "); Serial.print(float(data[0] / 31.6)); Serial.println("град."); // *1.8 приходящая информация
+    Serial.print("Пришла информация: "); Serial.print(data[0]); Serial.print("шагов  "); Serial.print(float(data[0] / (36.0*2.0))); Serial.println("град."); // *1.8 приходящая информация
+    //data[0] = 1800 * 2;
     incoming = data[0];                              //   шаги
     Serial.print("incoming: "); Serial.println(incoming);
-    stepper.setTarget(incoming, RELATIVE);          // шаги
+    stepper.setTargetDeg(incoming, RELATIVE);          // шаги
 
 }
 void task_temp_hum() {
