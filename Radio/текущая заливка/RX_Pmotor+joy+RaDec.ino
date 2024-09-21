@@ -108,9 +108,9 @@ void task_motor() {
   stepper.tick();                                            // Проверка состояния мотора
 
   if (stepper.ready()) {
-      Serial.println("Приехал, слушаем.");
+      //Serial.println("Приехал, слушаем.");
       radio.startListening();
-      Serial.println(" ");
+      //Serial.println(" ");
   }
 
   if (radio.available()) {                                   // Если в буфере поступили данные
@@ -143,10 +143,10 @@ void motor() {
     //incoming = data[0] * 0.02;                     // градусы в передаче, нужно /100 по факту
     //stepper.setTargetDeg(incoming, RELATIVE);     // градусы
 
-    Serial.print("Пришла информация: "); Serial.print(data[0]); Serial.print("шагов  "); Serial.print(float(data[0] / (36.0*2.0))); Serial.println("град."); // *1.8 приходящая информация
+        //Serial.print("Пришла информация: "); Serial.print(data[0]); Serial.print("шагов  "); Serial.print(float(data[0] / (36.0*2.0))); Serial.println("град."); // *1.8 приходящая информация
     //data[0] = 1800 * 2;
     incoming = data[0];                              //   шаги
-    Serial.print("incoming: "); Serial.println(incoming);
+        //Serial.print("incoming: "); Serial.println(incoming);
     stepper.setTargetDeg(incoming, RELATIVE);          // шаги
 
 }
@@ -180,7 +180,7 @@ void task_joy() {
     radio.stopListening();
 //    stepper.enable();
     count_click += 1;
-    Serial.println(F("Джойстик вкл."));
+        //Serial.println(F("Джойстик вкл."));
     while (count_click == 1){
       stepper.tick();
       jx.tick();
@@ -188,16 +188,16 @@ void task_joy() {
       if (jx.value() > 1) {
         count_sec = 0;
         stepper.setSpeed(2000);
-        Serial.println(F("Влево!"));     // включение движения мотора влево
+            //Serial.println(F("Влево!"));     // включение движения мотора влево
       }
       else if (jx.value() < -1) {
         count_sec = 0;
         stepper.setSpeed(-2000);
-        Serial.println(F("Вправо!"));    // включение движения мотора вправo
+            //Serial.println(F("Вправо!"));    // включение движения мотора вправo
       }
       else {
         stepper.stop();
-        Serial.print("Стоп");
+            //Serial.print("Стоп");
         delay(1000);
         count_sec += 1;                // включение счётчика при бездействии
         //Serial.println(count_sec);

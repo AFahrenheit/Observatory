@@ -270,7 +270,7 @@ void Turn() {
 
         else if (Az > last_position and abs(pos) < 180.0) {
             //data[0] = abs(pos) * 100.0;  // передаём градусы
-            data[0] = abs(pos) * 36.0 * 2.0 * 1.0;//  *2 для счёта и *(1)обороты редуктора на купол    передаём шаги с редукцией
+            data[0] = abs(pos) * 36.0 * 2.0 * 43.0;//  *2 для счёта и *(43)обороты редуктора на купол    передаём шаги с редукцией
             if (data[0] != 0) {
               Serial.print("1 Еду ПРАво"); Serial.print(abs(pos)); Serial.println("углов");
               radio.write(data, sizeof(data));
@@ -282,7 +282,7 @@ void Turn() {
         else if (turn_R < -180.0) {
             pos = 360.0 + (turn_R);
             //data[0] = abs(pos) * 100.0;  // передаём градусы
-            data[0] = abs(pos) * 36.0 * 2.0 * 1.0;//  *2 для счёта и *(1)обороты редуктора на купол    передаём шаги с редукцией
+            data[0] = abs(pos) * 36.0 * 2.0 * 43.0;//  *2 для счёта и *(43)обороты редуктора на купол    передаём шаги с редукцией
             if (data[0] != 0.0) {
               Serial.print("2 Еду ПРАво"); Serial.print(abs(pos)); Serial.println("углов");
               radio.write(data, sizeof(data));
@@ -296,7 +296,7 @@ void Turn() {
             if (pos > 1) {
                 pos *= -1;}
             //data[0] = pos * 100.0;  // передаём градусы
-            data[0] = pos * 36.0 * 2.0 * 1.0;//  *2 для счёта и *(1)обороты редуктора на купол    передаём шаги с редукцией
+            data[0] = pos * 36.0 * 2.0 * 43.0;//  *2 для счёта и *(43)обороты редуктора на купол    передаём шаги с редукцией
             if (data[0] != 0.0) {
               Serial.print("3 Еду levo"); Serial.print(pos); Serial.println("углов");
               radio.write(data, sizeof(data));
@@ -309,7 +309,7 @@ void Turn() {
             if (turn_R < -180.0){
                 pos = 360.0 + turn_R;}
                 //data[0] = abs(pos) * 100.0;  // передаём градусы
-                data[0] = abs(pos) * 36.0 * 2.0 * 1.0;//  *2 для счёта и *(1)обороты редуктора на купол    передаём шаги с редукцией
+                data[0] = abs(pos) * 36.0 * 2.0 * 43.0;//  *2 для счёта и *(43)обороты редуктора на купол    передаём шаги с редукцией
                 if (data[0] != 0.0) {
                   Serial.print("4 Еду ПРАво"); Serial.print(abs(pos)); Serial.println("углов");
                   radio.write(data, sizeof(data));
@@ -321,7 +321,7 @@ void Turn() {
             else if (turn_R > 180.0){
                 pos = turn_R;
                 //data[0] = pos * 100.0;  // передаём градусы
-                data[0] = pos * 36.0 * 2.0 * 1.0;//  *2 для счёта и *(1)обороты редуктора на купол    передаём шаги с редукцией
+                data[0] = pos * 36.0 * 2.0 * 43.0;//  *2 для счёта и *(43)обороты редуктора на купол    передаём шаги с редукцией
                 if (data[0] != 0.0) {
                   Serial.print("5 Еду ПРАво"); Serial.print(pos); Serial.println("углов");
                   radio.write(data, sizeof(data));
@@ -332,7 +332,7 @@ void Turn() {
 
         else {
             //data[0] = pos * 100.0;  // передаём градусы
-            data[0] = pos * 36.0 * 2.0 * 1.0;//  *2 для счёта и *(1)обороты редуктора на купол    передаём шаги с редукцией
+            data[0] = pos * 36.0 * 2.0 * 43.0;//  *2 для счёта и *(43)обороты редуктора на купол    передаём шаги с редукцией
             if (data[0] != 0.0) {
               Serial.print("6 Еду levo"); Serial.print(pos); Serial.println("углов");
               radio.write(data, sizeof(data));
