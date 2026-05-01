@@ -2,7 +2,7 @@
 #include <time.h>
 #include <math.h>
 #include <SPI.h>                                                     // Подключаем библиотеку SPI
-#include <nRF24L01.h>                                                // Подключаем библиотеку nRF24L01
+//#include <nRF24L01.h>                                                // Подключаем библиотеку nRF24L01
 #include <RF24.h>                                                    // Подключаем библиотеку RF24
 
 // Данные сети Wi-Fi для подключения
@@ -11,8 +11,8 @@ const char* WIFI_PASS = "19734682spg";
 
 // Указываем тут IP IPv4 (win+R -> cmd -> ipconfig) ПК, к которому соединяемся
 // Те же настройки должны быть в CdC (Настройка -> Главное -> Сервер)
-//const char* CDC_IP = "192.168.0.102"; // стационарный
-const char* CDC_IP = "192.168.0.105"; // ноут (ipconfig IPv4)
+const char* CDC_IP = "192.168.0.102"; // стационарный
+//const char* CDC_IP = "192.168.0.105"; // ноут (ipconfig IPv4)
 const uint16_t CDC_PORT = 4030;
 
 WiFiClient client;
@@ -21,6 +21,13 @@ WiFiClient client;
 const double OBS_LAT = 54.703164;  // +N
 const double OBS_LON = 37.911196;  // +E
 
+
+//________________________________________________________________________________________________
+//                              ПОДКЛЮЧЕНИЕ РАДИО
+//‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+int32_t data[1];                                                       // Создаём массив для передачи данных
+RF24 radio(D2, D1);                                                   // Указываем номера выводов nRF24L01+ (CE, CSN)
+
 //___________________________________________________________________________________________________________________
 //                                   ПОВОРОТ КУПОЛА
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
@@ -28,14 +35,15 @@ float last_position;   // последняя позиция
 float turn_R; float turn_L;
 float pos;
 int8_t count;
+double az;
 
 void connectToCDC() {
   while (!client.connected()) {
-    Serial.println("Connecting to CdC...");
+    //Serial.println("Connecting to CdC...");
     client.connect(CDC_IP, CDC_PORT);
     delay(2000);
   }
-  Serial.println("✅ Connected to CdC");
+  //Serial.println("✅ Connected to CdC");
 }
 
 String sendLX200(const char* cmd) {
@@ -142,7 +150,7 @@ void getAZ() {
   String deS = extractDEC(raw);
 
   if (raS.length()==0 || deS.length()==0) {
-    Serial.println("No data");
+    //Serial.println("No data");
     delay(1000);
     return;
   }
@@ -154,93 +162,91 @@ void getAZ() {
   // Вывод отладочный
   //Serial.print("RA  = "); Serial.println(raS);
   //Serial.print("DEC = "); Serial.println(deS);
-  Serial.print("AZ  = "); Serial.println(az,2);
-  Serial.println("--------------------");
-  delay(1000);
-}
+  //Serial.print("AZ  = "); Serial.println(az,2);
+  //Serial.println("--------------------");
+  delay(500);
 
-void Turn() {
+  //Serial.print("az посчитан: "); Serial.println(az, 2);
+
 //___________________________________________________________________________________________________________________
 //                                   ПОВОРОТ КУПОЛА
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-    turn_L = last_position - Az;   // вычисление шагов вЛево
-    turn_R = Az - last_position;   // вычисление шагов вПраво
-    pos = min(turn_L, turn_R);     // выбор наименьшего пути право/лево
+  turn_L = last_position - az;   // вычисление шагов вЛево
+  turn_R = az - last_position;   // вычисление шагов вПраво
+  pos = min(turn_L, turn_R);     // выбор наименьшего пути право/лево
 
-    if (count == 2){   // Az != last_position && count > 3 если значения не меняются, то ничего не делать
-        count = 0;
-        //Print();
+  if (pos == 0.0) {
+  }
 
-        if (pos == 0.0) {
-        }
-
-        else if (Az > last_position and abs(pos) < 180.0) {
-            data[0] = fabs(pos) * STEPS_PER_DEGREE;//  *2 для счёта и *(43)обороты редуктора на купол    передаём шаги с редукцией
-            if (data[0] != 0) {
-              //Serial.print("1 Еду ПРАво"); Serial.print(abs(pos)); Serial.println("углов");
-              radio.write(data, sizeof(data));
-              Serial.print(F("Отправил массив: ")); Serial.println(data[0]);       // ПРИНТ
-              last_position = Az;
-            }
-        }
-
-        else if (turn_R < -180.0) {
-            pos = 360.0 + (turn_R);
-            data[0] = fabs(pos) * STEPS_PER_DEGREE;//  *2 для счёта и *(43)обороты редуктора на купол    передаём шаги с редукцией
-            if (data[0] != 0.0) {
-              //Serial.print("2 Еду ПРАво"); Serial.print(abs(pos)); Serial.println("углов");
-              radio.write(data, sizeof(data));
-              Serial.print(F("Отправил массив: ")); Serial.println(data[0]);       // ПРИНТ
-              last_position = Az;
-            }
-        }
-
-        else if (abs(pos) >= 180.0){
-            pos += 359.0;
-            if (pos > 1) {
-                pos *= -1;}
-            data[0] = pos * STEPS_PER_DEGREE;//  *2 для счёта и *(43)обороты редуктора на купол    передаём шаги с редукцией
-            if (data[0] != 0.0) {
-              //Serial.print("3 Еду levo"); Serial.print(pos); Serial.println("углов");
-              radio.write(data, sizeof(data));
-              Serial.print(F("Отправил массив: ")); Serial.println(data[0]);       // ПРИНТ
-              last_position = Az;
-            }
-        }
-
-        else if (abs(turn_R) > 180.0) {
-            if (turn_R < -180.0){
-                pos = 360.0 + turn_R;}
-                data[0] = fabs(pos) * STEPS_PER_DEGREE;//  *2 для счёта и *(43)обороты редуктора на купол    передаём шаги с редукцией
-                if (data[0] != 0.0) {
-                  //Serial.print("4 Еду ПРАво"); Serial.print(abs(pos)); Serial.println("углов");
-                  radio.write(data, sizeof(data));
-                  Serial.print(F("Отправил массив: ")); Serial.println(data[0]);       // ПРИНТ
-                  last_position = Az;
-                }
-            }
-
-            else if (turn_R > 180.0){
-                pos = turn_R;
-                data[0] = pos * STEPS_PER_DEGREE;//  *2 для счёта и *(43)обороты редуктора на купол    передаём шаги с редукцией
-                if (data[0] != 0.0) {
-                  //Serial.print("5 Еду ПРАво"); Serial.print(pos); Serial.println("углов");
-                  radio.write(data, sizeof(data));
-                  Serial.print(F("Отправил массив: ")); Serial.println(data[0]);       // ПРИНТ
-                  last_position = Az;
-                }
-            }
-
-        else {
-            data[0] = pos * STEPS_PER_DEGREE;//  *2 для счёта и *(43)обороты редуктора на купол    передаём шаги с редукцией
-            if (data[0] != 0.0) {
-              //Serial.print("6 Еду levo"); Serial.print(pos); Serial.println("углов");
-              radio.write(data, sizeof(data));
-              Serial.print(F("Отправил массив: ")); Serial.println(data[0]);       // ПРИНТ
-              last_position = Az;
-            }
-        }
+  else if (az > last_position and abs(pos) < 180.0) {
+    data[0] = fabs(pos) * 3096;//  *2 для счёта и *(43)обороты редуктора на купол    передаём шаги с редукцией
+    if (data[0] != 0) {
+      //Serial.print("1 Еду ПРАво"); Serial.print(abs(pos)); Serial.println("углов");
+      radio.write(data, sizeof(data));
+      //Serial.print(F("Отправил массив: ")); Serial.println(data[0]);       // ПРИНТ
+      last_position = az;
     }
+  }
+
+  else if (turn_R < -180.0) {
+    pos = 360.0 + (turn_R);
+    data[0] = fabs(pos) * 3096;//  *2 для счёта и *(43)обороты редуктора на купол    передаём шаги с редукцией
+    if (data[0] != 0.0) {
+      //Serial.print("2 Еду ПРАво"); Serial.print(abs(pos)); Serial.println("углов");
+      radio.write(data, sizeof(data));
+      //Serial.print(F("Отправил массив: ")); Serial.println(data[0]);       // ПРИНТ
+      last_position = az;
+    }
+  }
+
+  else if (abs(pos) >= 180.0){
+    pos += 359.0;
+    if (pos > 1) {
+      pos *= -1;}
+    data[0] = pos * 3096;//  *2 для счёта и *(43)обороты редуктора на купол    передаём шаги с редукцией
+    if (data[0] != 0.0) {
+      //Serial.print("3 Еду levo"); Serial.print(pos); Serial.println("углов");
+      radio.write(data, sizeof(data));
+      //Serial.print(F("Отправил массив: ")); Serial.println(data[0]);       // ПРИНТ
+      last_position = az;
+    }
+  }
+
+  else if (abs(turn_R) > 180.0) {
+    if (turn_R < -180.0){
+      pos = 360.0 + turn_R;}
+        data[0] = fabs(pos) * 3096;//  *2 для счёта и *(43)обороты редуктора на купол    передаём шаги с редукцией
+        if (data[0] != 0.0) {
+          //Serial.print("4 Еду ПРАво"); Serial.print(abs(pos)); Serial.println("углов");
+          radio.write(data, sizeof(data));
+          //Serial.print(F("Отправил массив: ")); Serial.println(data[0]);       // ПРИНТ
+          last_position = az;
+        }
+  }
+
+    else if (turn_R > 180.0){
+      pos = turn_R;
+      data[0] = pos * 3096;//  *2 для счёта и *(43)обороты редуктора на купол    передаём шаги с редукцией
+      if (data[0] != 0.0) {
+        //Serial.print("5 Еду ПРАво"); Serial.print(pos); Serial.println("углов");
+        radio.write(data, sizeof(data));
+        //Serial.print(F("Отправил массив: ")); Serial.println(data[0]);       // ПРИНТ
+        last_position = az;
+      }
+    }
+
+  else {
+    data[0] = pos * 3096;//  *36 шагов/градус *2 для счёта и *(43)обороты редуктора на купол    передаём шаги с редукцией
+    if (data[0] != 0.0) {
+      //Serial.print("6 Еду levo"); Serial.print(pos); Serial.println("углов");
+      radio.write(data, sizeof(data));
+      //Serial.print(F("Отправил массив: ")); Serial.println(data[0]);       // ПРИНТ
+      last_position = az;
+    }
+  }
+
+  //yield(); // критично для ESP8266
+  delay(1000);
 }
 
 void setup() {
@@ -250,6 +256,23 @@ void setup() {
 
   configTime(0,0,"pool.ntp.org","time.nist.gov");
   while(time(nullptr)<1700000000) delay(500);
+
+// ---------------- SPI (ВАЖНО для ESP8266) ----------------
+  SPI.begin();  // SCK=14, MISO=12, MOSI=13 по умолчанию
+
+  // ---------------- RADIO ----------------
+  radio.begin();
+
+  radio.setChannel(120);
+  radio.setRetries(10, 5);          // уменьшили задержку (50 → 5)
+  radio.setDataRate(RF24_1MBPS);
+  radio.setPALevel(RF24_PA_MAX);
+
+  radio.openWritingPipe(0xF0F0F0F066LL);
+
+  radio.stopListening();            // обязательно для передачи
+  radio.powerUp();
+  //Serial.println("Radio OK");
 
   connectToCDC();
 }
