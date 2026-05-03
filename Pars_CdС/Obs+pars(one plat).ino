@@ -18,8 +18,6 @@ GyverJoy jx(2);   // джойстик на пине A2 (указываются �
 Button button(2);
 bool count_click = 0;                                  // счётчик нажатий кнопки джойстика
 uint8_t count_sec = 0;                                 // счётчик секунд бездействия
-
-bool count = 0;                                       // счётчик включения датчика темп/вл
 int16_t joy_speed_value = 2000; // скорость вращения мотора с джойтика                (ТРОГАЛ)
 
 //                                     Wi-fi
@@ -29,7 +27,6 @@ int16_t joy_speed_value = 2000; // скорость вращения мотор�
 #include <math.h>
 #include <SPI.h>                                                     // Подключаем библиотеку SPI
 //#include <nRF24L01.h>                                                // Подключаем библиотеку nRF24L01
-#include <RF24.h>                                                    // Подключаем библиотеку RF24
 // Данные сети Wi-Fi для подключения
 const char* WIFI_SSID = "Mordor";
 const char* WIFI_PASS = "19734682spg";
@@ -47,16 +44,16 @@ const double OBS_LON = 37.911196;  // +E
 float last_position;   // последняя позиция
 float turn_R; float turn_L;
 float pos;
-int8_t count;
 double az;
+int32_t data[1];
 
 void connectToCDC() {
   while (!client.connected()) {
-    //Serial.println("Connecting to CdC...");
+    Serial.println("Connecting to CdC...");
     client.connect(CDC_IP, CDC_PORT);
     delay(2000);
   }
-  //Serial.println("✅ Connected to CdC");
+  Serial.println("✅ Connected to CdC");
 }
 
 String sendLX200(const char* cmd) {
@@ -167,7 +164,8 @@ void getAZ() {
 
   double ra = raToDeg(raS);
   double dec= decToDeg(deS);
-  double az = calcAz(ra, dec);
+  //double az = calcAz(ra, dec);
+  az = calcAz(ra, dec);
 
   // Вывод отладочный
   //Serial.print("RA  = "); Serial.println(raS);
@@ -176,7 +174,8 @@ void getAZ() {
   //Serial.println("--------------------");
   delay(500);
 
-  //Serial.print("az посчитан: "); Serial.println(az, 2);
+  Serial.print("az посчитан: "); Serial.println(az, 2);
+  Serial.print("last_position посчитан: "); Serial.println(last_position);
 
 //                                   ПОВОРОТ КУПОЛА
   turn_L = last_position - az;   // вычисление шагов вЛево
@@ -184,12 +183,14 @@ void getAZ() {
   pos = min(turn_L, turn_R);     // выбор наименьшего пути право/лево
 
   if (pos == 0.0) {
+    Serial.println("стою на месте");
   }
 
   else if (az > last_position and abs(pos) < 180.0) {
     data[0] = fabs(pos) * 3096;//  *2 для счёта и *(43)обороты редуктора на купол    передаём шаги с редукцией
     if (data[0] != 0) {
-      //Serial.print("1 Еду ПРАво"); Serial.print(abs(pos)); Serial.println("шагов");
+      Serial.print("№1 Еду ПРАво "); Serial.print(abs(data[0])); Serial.println(" шагов");
+      last_position = az;
       mot_work();
     }
   }
@@ -198,7 +199,8 @@ void getAZ() {
     pos = 360.0 + (turn_R);
     data[0] = fabs(pos) * 3096;//  *2 для счёта и *(43)обороты редуктора на купол    передаём шаги с редукцией
     if (data[0] != 0.0) {
-      //Serial.print("2 Еду ПРАво"); Serial.print(abs(pos)); Serial.println("шагов");
+      Serial.print("№2 Еду ПРАво "); Serial.print(abs(data[0])); Serial.println(" шагов");
+      last_position = az;
       mot_work();
     }
   }
@@ -210,7 +212,8 @@ void getAZ() {
     }
     data[0] = pos * 3096;//  *2 для счёта и *(43)обороты редуктора на купол    передаём шаги с редукцией
     if (data[0] != 0.0) {
-      //Serial.print("3 Еду levo"); Serial.print(pos); Serial.println("шагов");
+      Serial.print("№3 Еду ЛЕво "); Serial.print(data[0]); Serial.println(" шагов");
+      last_position = az;
       mot_work();
     }
   }
@@ -221,7 +224,8 @@ void getAZ() {
     }
     data[0] = fabs(pos) * 3096;//  *2 для счёта и *(43)обороты редуктора на купол    передаём шаги с редукцией
     if (data[0] != 0.0) {
-      //Serial.print("4 Еду ПРАво"); Serial.print(abs(pos)); Serial.println("шагов");
+      Serial.print("№4 Еду ПРАво "); Serial.print(abs(data[0])); Serial.println(" шагов");
+      last_position = az;
       mot_work();
     }
   }
@@ -230,7 +234,8 @@ void getAZ() {
     pos = turn_R;
     data[0] = pos * 3096;//  *2 для счёта и *(43)обороты редуктора на купол    передаём шаги с редукцией
     if (data[0] != 0.0) {
-      //Serial.print("5 Еду ПРАво"); Serial.print(pos); Serial.println("шагов");
+      Serial.print("№5 Еду ПРАво "); Serial.print(data[0]); Serial.println(" шагов");
+      last_position = az;
       mot_work();
     }
   }
@@ -238,19 +243,20 @@ void getAZ() {
   else {
     data[0] = pos * 3096;//  *36 шагов/градус *2 для счёта и *(43)обороты редуктора на купол    передаём шаги с редукцией
     if (data[0] != 0.0) {
-      //Serial.print("6 Еду levo"); Serial.print(pos); Serial.println("шагов");
+      Serial.print("№6 Еду ЛЕво "); Serial.print(data[0]); Serial.println(" шагов");
+      last_position = az;
       mot_work();
     }
   }
   delay(1000);
 }
 
-void mot_work(); {
-    stepper.tick();
+void mot_work() {
     if (stepper.ready()) {
-        incoming = - data[0];                              //   шаги
-        stepper.setTargetDeg(incoming, RELATIVE);          // шаги
-        last_position = az;
+      incoming = - data[0];                              //   шаги
+      stepper.setTargetDeg(incoming, RELATIVE);          // шаги
+      Serial.print("Приехал в "); Serial.println(incoming);
+      Serial.println(" ");
     }
 }
 
@@ -265,10 +271,16 @@ void setup() {
 
 //                                     Wi-fi
   WiFi.begin(WIFI_SSID, WIFI_PASS);
-  while(WiFi.status()!=WL_CONNECTED) delay(500);
+  while(WiFi.status()!=WL_CONNECTED) {
+    delay(500);
+    yield();
+  }
 
   configTime(0,0,"pool.ntp.org","time.nist.gov");
-  while(time(nullptr)<1700000000) delay(500);
+  while(time(nullptr)<1700000000) {
+    delay(500);
+    yield();
+  }
 
 // ---------------- SPI (ВАЖНО для ESP8266) ----------------
   SPI.begin();  // SCK=14, MISO=12, MOSI=13 по умолчанию
@@ -289,7 +301,6 @@ void task_joy() {
   //Serial.println("6 Проверка джойстика");
 
   if (button.click()){
-    radio.stopListening();
     count_click += 1;
     //Serial.println(F("Джойстик вкл."));
     while (count_click == 1){
@@ -318,7 +329,6 @@ void task_joy() {
           count_click = 0;
           count_sec = 0;
 //          stepper.disable();
-          radio.startListening();
           break;
         }
       }
@@ -327,6 +337,7 @@ void task_joy() {
 }
 
 void loop() {
+  stepper.tick();
   getAZ();
   task_joy();
 }
